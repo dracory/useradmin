@@ -1,0 +1,92 @@
+#
+# This task file allows you to:
+#  1. Run the example server with hot reload for development
+#  2. Run tests
+#  3. Generate coverage reports
+#
+# Task file usage: https://taskfile.dev
+#
+# Install task:  https://taskfile.dev/installation/
+# Install air:   task air:install
+#
+
+version: '3'
+
+vars:
+  APPNAME: useradmin
+
+tasks:
+  # ======================================================================== #
+  # START: Help screen (Default)                                             #
+  # ======================================================================== #
+  default:
+    cmds:
+      - echo "================================================================"
+      - echo "=                                                              ="
+      - echo "= Welcome to {{.APPNAME}}                                      ="
+      - echo "=                                                              ="
+      - echo "= Select an option from the list below                         ="
+      - echo "=                                                              ="
+      - echo "= 1. To run tests type 'task test'                             ="
+      - echo "= 2. To create coverage report type 'task cover'               ="
+      - echo "= 3. To start example with hot reload type 'task dev'          ="
+      - echo "= 4. To install air type 'task air:install'                    ="
+      - echo "=                                                              ="
+      - echo "================================================================"
+    silent: true
+  # ======================================================================== #
+  # END: Help screen (Default)                                               #
+  # ======================================================================== #
+
+  # ======================================================================== #
+  # START: Development                                                       #
+  # ======================================================================== #
+
+  dev:
+    desc: Start the example server with hot reload
+    cmds:
+      - air
+
+  dev:run:
+    desc: Run the example server once (no hot reload)
+    cmds:
+      - go run ./example
+
+  # ======================================================================== #
+  # END: Development                                                         #
+  # ======================================================================== #
+
+  # ======================================================================== #
+  # START: Testing                                                           #
+  # ======================================================================== #
+
+  test:
+    desc: Run all tests
+    cmds:
+      - go test ./...
+
+  cover:
+    desc: Builds a test coverage report
+    cmds:
+      - echo "Generating cover report..."
+      - go test ./... -coverprofile=tmp/coverage.out -covermode=count
+      - go tool cover -html=tmp/coverage.out
+      - echo "Done!"
+    silent: true
+
+  # ======================================================================== #
+  # END: Testing                                                             #
+  # ======================================================================== #
+
+  # ======================================================================== #
+  # START: Tools                                                             #
+  # ======================================================================== #
+
+  air:install:
+    desc: Install air (Go live reload)
+    cmds:
+      - go install github.com/air-verse/air@latest
+
+  # ======================================================================== #
+  # END: Tools                                                               #
+  # ======================================================================== #
