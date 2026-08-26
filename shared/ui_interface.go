@@ -16,7 +16,8 @@ type UiInterface interface {
 	OnUserImpersonate() OnUserImpersonateFunc
 	OnUserSearch() OnUserSearchFunc
 	OnUserUpdate() OnUserUpdateFunc
-	VaultTokenizer() VaultTokenizer
+	OnUserDecode() OnUserDecodeFunc
+	OnUserEncode() OnUserEncodeFunc
 	FlashRedirect() FlashRedirectFunc
 
 	Layout(w http.ResponseWriter, r *http.Request, webpageTitle, webpageHtml string, options struct {

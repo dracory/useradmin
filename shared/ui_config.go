@@ -40,9 +40,15 @@ type UiConfig struct {
 	// callback is skipped.
 	OnUserUpdate OnUserUpdateFunc
 
-	// VaultTokenizer abstracts vault tokenization. Optional — when
-	// nil, user fields are treated as plain text.
-	VaultTokenizer VaultTokenizer
+	// OnUserDecode transforms a user from storage representation to
+	// display representation (e.g. decrypt fields). Optional — when
+	// nil, the user is used as-is (plain text).
+	OnUserDecode OnUserDecodeFunc
+
+	// OnUserEncode transforms a user from display representation to
+	// storage representation (e.g. encrypt fields). Optional — when
+	// nil, the user is stored as-is (plain text).
+	OnUserEncode OnUserEncodeFunc
 
 	// FlashRedirect redirects with a flash message. Optional — when
 	// nil, plain http.Redirect is used.

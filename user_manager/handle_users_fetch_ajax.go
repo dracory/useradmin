@@ -175,28 +175,23 @@ func (u *ui) handleUsersFetchAjax(w http.ResponseWriter, r *http.Request) string
 
 	users := make([]map[string]interface{}, 0, len(userList))
 	for _, user := range userList {
-		firstNameVal := user.GetFirstName()
-		lastNameVal := user.GetLastName()
-		emailVal := user.GetEmail()
-
-		if u.VaultTokenizer() != nil {
-			var err error
-			firstNameVal, lastNameVal, emailVal, _, _, err = u.VaultTokenizer().Untokenize(r.Context(), user)
+		// Decode for display (e.g. decrypt tokenized fields).
+		if u.OnUserDecode() != nil {
+			decoded, err := u.OnUserDecode()(r.Context(), user)
 			if err != nil {
 				if u.Logger() != nil {
-					u.Logger().Error("userManagerController.handleUsersFetchAjax Untokenize", slog.String("error", err.Error()))
+					u.Logger().Error("userManagerController.handleUsersFetchAjax OnUserDecode", slog.String("error", err.Error()))
 				}
-				firstNameVal = "n/a"
-				lastNameVal = "n/a"
-				emailVal = "n/a"
+			} else {
+				user = decoded
 			}
 		}
 
 		users = append(users, map[string]interface{}{
 			FieldID:        user.GetID(),
-			FieldFirstName: firstNameVal,
-			FieldLastName:  lastNameVal,
-			FieldEmail:     emailVal,
+			FieldFirstName: user.GetFirstName(),
+			FieldLastName:  user.GetLastName(),
+			FieldEmail:     user.GetEmail(),
 			FieldStatus:    user.GetStatus(),
 			FieldCreatedAt: user.GetCreatedAtCarbon().Format("d M Y"),
 			FieldUpdatedAt: user.GetUpdatedAtCarbon().Format("d M Y"),

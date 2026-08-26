@@ -94,18 +94,20 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Decode the user to get the original email for change detection.
 	originalEmail := user.GetEmail()
-	if u.VaultTokenizer() != nil {
-		_, _, em, _, _, err := u.VaultTokenizer().Untokenize(r.Context(), user)
+	if u.OnUserDecode() != nil {
+		decoded, err := u.OnUserDecode()(r.Context(), user)
 		if err != nil {
 			if u.Logger() != nil {
-				u.Logger().Error("userUpdateController.handleUserUpdateAjax Untokenize originalEmail", slog.String("error", err.Error()))
+				u.Logger().Error("userUpdateController.handleUserUpdateAjax OnUserDecode", slog.String("error", err.Error()))
 			}
-			// On untokenize failure, skip the email-change detection
-			// rather than enqueuing a spurious blind index rebuild.
+			// On decode failure, skip email-change detection rather
+			// than enqueuing a spurious blind index rebuild.
 			originalEmail = strings.TrimSpace(payload.Email)
 		} else {
-			originalEmail = em
+			user = decoded
+			originalEmail = user.GetEmail()
 		}
 	}
 
@@ -114,35 +116,23 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 	user.SetRole(payload.Role)
 	user.SetCountry(payload.Country)
 	user.SetTimezone(payload.Timezone)
+	user.SetFirstName(strings.TrimSpace(payload.FirstName))
+	user.SetLastName(strings.TrimSpace(payload.LastName))
+	user.SetEmail(strings.TrimSpace(payload.Email))
+	user.SetPhone(strings.TrimSpace(payload.Phone))
+	user.SetBusinessName(strings.TrimSpace(payload.BusinessName))
 
-	if u.VaultTokenizer() != nil {
-		firstToken, lastToken, emailToken, phoneToken, businessToken, err := u.VaultTokenizer().Tokenize(
-			r.Context(),
-			user,
-			strings.TrimSpace(payload.FirstName),
-			strings.TrimSpace(payload.LastName),
-			strings.TrimSpace(payload.Email),
-			strings.TrimSpace(payload.Phone),
-			strings.TrimSpace(payload.BusinessName),
-		)
+	// Encode the user for storage (e.g. encrypt/tokenize fields).
+	if u.OnUserEncode() != nil {
+		encoded, err := u.OnUserEncode()(r.Context(), user)
 		if err != nil {
 			if u.Logger() != nil {
-				u.Logger().Error("Error tokenizing user", slog.String("error", err.Error()))
+				u.Logger().Error("Error encoding user", slog.String("error", err.Error()))
 			}
 			api.Respond(w, r, api.Error("System error. Saving user failed"))
 			return
 		}
-		user.SetFirstName(firstToken)
-		user.SetLastName(lastToken)
-		user.SetEmail(emailToken)
-		user.SetPhone(phoneToken)
-		user.SetBusinessName(businessToken)
-	} else {
-		user.SetFirstName(strings.TrimSpace(payload.FirstName))
-		user.SetLastName(strings.TrimSpace(payload.LastName))
-		user.SetEmail(strings.TrimSpace(payload.Email))
-		user.SetPhone(strings.TrimSpace(payload.Phone))
-		user.SetBusinessName(strings.TrimSpace(payload.BusinessName))
+		user = encoded
 	}
 
 	if err := u.UserStore().UserUpdate(r.Context(), user); err != nil {

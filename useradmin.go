@@ -26,7 +26,7 @@ import (
 //
 // UserStore, GeoResolver, and Logger are required. SessionStore is
 // required for the impersonate controller. Blind index stores,
-// TaskStore, and VaultTokenizer are optional — when nil, the
+// OnUserDecode/OnUserEncode are optional — when nil, user fields are
 // corresponding features degrade gracefully (filtered search disabled,
 // email-change rebuild skipped, user fields treated as plain text).
 //
@@ -62,9 +62,15 @@ type AdminOptions struct {
 	// callback is skipped.
 	OnUserUpdate shared.OnUserUpdateFunc
 
-	// VaultTokenizer abstracts vault tokenization. Optional — when
-	// nil, user fields are treated as plain text.
-	VaultTokenizer shared.VaultTokenizer
+	// OnUserDecode transforms a user from storage representation to
+	// display representation (e.g. decrypt fields). Optional — when
+	// nil, the user is used as-is (plain text).
+	OnUserDecode shared.OnUserDecodeFunc
+
+	// OnUserEncode transforms a user from display representation to
+	// storage representation (e.g. encrypt fields). Optional — when
+	// nil, the user is stored as-is (plain text).
+	OnUserEncode shared.OnUserEncodeFunc
 
 	// FlashRedirect redirects with a flash message. Optional — when
 	// nil, plain http.Redirect is used.
@@ -112,7 +118,8 @@ type (
 	OnUserImpersonateFunc = shared.OnUserImpersonateFunc
 	UserUpdateEvent       = shared.UserUpdateEvent
 	OnUserUpdateFunc      = shared.OnUserUpdateFunc
-	VaultTokenizer        = shared.VaultTokenizer
+	OnUserDecodeFunc      = shared.OnUserDecodeFunc
+	OnUserEncodeFunc      = shared.OnUserEncodeFunc
 	FlashRedirectFunc     = shared.FlashRedirectFunc
 )
 
@@ -124,7 +131,8 @@ type admin struct {
 	onUserImpersonate shared.OnUserImpersonateFunc
 	onUserSearch      shared.OnUserSearchFunc
 	onUserUpdate      shared.OnUserUpdateFunc
-	vaultTokenizer    shared.VaultTokenizer
+	onUserDecode      shared.OnUserDecodeFunc
+	onUserEncode      shared.OnUserEncodeFunc
 	flashRedirect     shared.FlashRedirectFunc
 	funcLayout        func(w http.ResponseWriter, r *http.Request, title string, body string, options struct {
 		Styles     []string
@@ -176,7 +184,8 @@ func New(opts AdminOptions) (AdminInterface, error) {
 		onUserImpersonate: opts.OnUserImpersonate,
 		onUserSearch:      opts.OnUserSearch,
 		onUserUpdate:      opts.OnUserUpdate,
-		vaultTokenizer:    opts.VaultTokenizer,
+		onUserDecode:      opts.OnUserDecode,
+		onUserEncode:      opts.OnUserEncode,
 		flashRedirect:     opts.FlashRedirect,
 		funcLayout:        opts.FuncLayout,
 		adminHomeURL:      opts.AdminHomeURL,
@@ -227,7 +236,8 @@ func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Req
 		OnUserImpersonate: a.onUserImpersonate,
 		OnUserSearch:      a.onUserSearch,
 		OnUserUpdate:      a.onUserUpdate,
-		VaultTokenizer:    a.vaultTokenizer,
+		OnUserDecode:      a.onUserDecode,
+		OnUserEncode:      a.onUserEncode,
 		FlashRedirect:     a.flashRedirect,
 		Layout:            a.render,
 	}

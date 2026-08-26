@@ -3,6 +3,8 @@ package shared
 import (
 	"context"
 	"net/http"
+
+	"github.com/dracory/userstore"
 )
 
 // GeoResolverInterface provides countries and timezones. The host
@@ -82,3 +84,16 @@ type UserUpdateEvent struct {
 // rebuild, audit log, notifications, etc.) without useradmin dictating
 // how. When nil, the callback is skipped.
 type OnUserUpdateFunc func(ctx context.Context, event UserUpdateEvent)
+
+// OnUserDecodeFunc transforms a user from storage representation to
+// display representation (e.g. decrypt/tokenize fields to plaintext).
+// The host owns the transformation mechanism — vault tokenization,
+// field-level encryption, or anything else. When nil, the user is
+// used as-is (plain text).
+type OnUserDecodeFunc func(ctx context.Context, user userstore.UserInterface) (userstore.UserInterface, error)
+
+// OnUserEncodeFunc transforms a user from display representation to
+// storage representation (e.g. encrypt/tokenize plaintext fields).
+// The host owns the transformation mechanism. When nil, the user is
+// stored as-is (plain text).
+type OnUserEncodeFunc func(ctx context.Context, user userstore.UserInterface) (userstore.UserInterface, error)

@@ -40,6 +40,20 @@ func (u *ui) handleUserFetchAjax(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Decode the user for display (e.g. decrypt tokenized fields).
+	// When OnUserDecode is nil, the user is used as-is (plain text).
+	if u.OnUserDecode() != nil {
+		decoded, err := u.OnUserDecode()(r.Context(), user)
+		if err != nil {
+			if u.Logger() != nil {
+				u.Logger().Error("userUpdateController.handleUserFetchAjax OnUserDecode", slog.String("error", err.Error()))
+			}
+			api.Respond(w, r, api.Error("Failed to decode user"))
+			return
+		}
+		user = decoded
+	}
+
 	firstName := user.GetFirstName()
 	lastName := user.GetLastName()
 	email := user.GetEmail()
@@ -58,31 +72,6 @@ func (u *ui) handleUserFetchAjax(w http.ResponseWriter, r *http.Request) {
 		"business_name": true,
 		"phone":         true,
 		"role":          true,
-	}
-
-	if u.VaultTokenizer() != nil {
-		fn, ln, em, ph, bn, err := u.VaultTokenizer().Untokenize(r.Context(), user)
-		if err != nil {
-			if u.Logger() != nil {
-				u.Logger().Error("userUpdateController.handleUserFetchAjax Untokenize", slog.String("error", err.Error()))
-			}
-			fieldStatus["first_name"] = false
-			fieldStatus["last_name"] = false
-			fieldStatus["email"] = false
-			fieldStatus["business_name"] = false
-			fieldStatus["phone"] = false
-			firstName = "n/a"
-			lastName = "n/a"
-			email = "n/a"
-			phone = "n/a"
-			business = "n/a"
-		} else {
-			firstName = fn
-			lastName = ln
-			email = em
-			phone = ph
-			business = bn
-		}
 	}
 
 	if u.GeoResolver() == nil {

@@ -49,21 +49,19 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		return shared.FlashError(u.FlashRedirect(), w, r, "User not found", userManagerURL, 10)
 	}
 
-	firstName := user.GetFirstName()
-	lastName := user.GetLastName()
-	if u.VaultTokenizer() != nil {
-		fn, ln, _, _, _, err := u.VaultTokenizer().Untokenize(r.Context(), user)
+	// Decode for display (e.g. decrypt tokenized fields).
+	if u.OnUserDecode() != nil {
+		decoded, err := u.OnUserDecode()(r.Context(), user)
 		if err != nil {
 			if u.Logger() != nil {
 				u.Logger().Error("At userUpdateController > renderPage", slog.String("error", err.Error()))
 			}
 		} else {
-			firstName = fn
-			lastName = ln
+			user = decoded
 		}
 	}
 
-	displayName := strings.TrimSpace(firstName + " " + lastName)
+	displayName := strings.TrimSpace(user.GetFirstName() + " " + user.GetLastName())
 	if displayName == "" {
 		displayName = user.GetID()
 	}
