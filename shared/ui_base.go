@@ -19,7 +19,6 @@ type UiBase struct {
 	OnUserUpdateField      OnUserUpdateFunc
 	VaultTokenizerField    VaultTokenizer
 	FlashRedirectField     FlashRedirectFunc
-	SecureCookieField      bool
 	LayoutField            func(w http.ResponseWriter, r *http.Request, webpageTitle, webpageHtml string, options struct {
 		Styles     []string
 		StyleURLs  []string
@@ -36,7 +35,6 @@ func (u UiBase) OnUserSearch() OnUserSearchFunc           { return u.OnUserSearc
 func (u UiBase) OnUserUpdate() OnUserUpdateFunc           { return u.OnUserUpdateField }
 func (u UiBase) VaultTokenizer() VaultTokenizer           { return u.VaultTokenizerField }
 func (u UiBase) FlashRedirect() FlashRedirectFunc         { return u.FlashRedirectField }
-func (u UiBase) SecureCookie() bool                       { return u.SecureCookieField }
 
 func (u UiBase) Layout(w http.ResponseWriter, r *http.Request, webpageTitle, webpageHtml string, options struct {
 	Styles     []string
@@ -58,7 +56,6 @@ func NewUiBase(config UiConfig) UiBase {
 		OnUserUpdateField:      config.OnUserUpdate,
 		VaultTokenizerField:    config.VaultTokenizer,
 		FlashRedirectField:     config.FlashRedirect,
-		SecureCookieField:      config.SecureCookie,
 		LayoutField:            config.Layout,
 	}
 }

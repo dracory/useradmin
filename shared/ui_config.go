@@ -48,11 +48,6 @@ type UiConfig struct {
 	// nil, plain http.Redirect is used.
 	FlashRedirect FlashRedirectFunc
 
-	// SecureCookie controls whether the impersonation cookie is marked
-	// Secure. Set to false for HTTP (development), true for HTTPS
-	// (production). Defaults to true.
-	SecureCookie bool
-
 	// Layout is the layout renderer callback.
 	Layout func(w http.ResponseWriter, r *http.Request, webpageTitle, webpageHtml string, options struct {
 		Styles     []string

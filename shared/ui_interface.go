@@ -18,7 +18,6 @@ type UiInterface interface {
 	OnUserUpdate() OnUserUpdateFunc
 	VaultTokenizer() VaultTokenizer
 	FlashRedirect() FlashRedirectFunc
-	SecureCookie() bool
 
 	Layout(w http.ResponseWriter, r *http.Request, webpageTitle, webpageHtml string, options struct {
 		Styles     []string

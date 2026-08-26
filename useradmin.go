@@ -70,11 +70,6 @@ type AdminOptions struct {
 	// nil, plain http.Redirect is used.
 	FlashRedirect shared.FlashRedirectFunc
 
-	// SecureCookie controls whether the impersonation cookie is marked
-	// Secure. Set to false for HTTP (development), true for HTTPS
-	// (production). Defaults to true.
-	SecureCookie bool
-
 	// FuncLayout is an optional function to render the admin interface
 	// inside your own layout (branding, menus, etc.). It receives the
 	// request and response writer so the host project can access
@@ -131,7 +126,6 @@ type admin struct {
 	onUserUpdate      shared.OnUserUpdateFunc
 	vaultTokenizer    shared.VaultTokenizer
 	flashRedirect     shared.FlashRedirectFunc
-	secureCookie      bool
 	funcLayout        func(w http.ResponseWriter, r *http.Request, title string, body string, options struct {
 		Styles     []string
 		StyleURLs  []string
@@ -184,7 +178,6 @@ func New(opts AdminOptions) (AdminInterface, error) {
 		onUserUpdate:      opts.OnUserUpdate,
 		vaultTokenizer:    opts.VaultTokenizer,
 		flashRedirect:     opts.FlashRedirect,
-		secureCookie:      opts.SecureCookie,
 		funcLayout:        opts.FuncLayout,
 		adminHomeURL:      opts.AdminHomeURL,
 		userAdminURL:      opts.UserAdminURL,
@@ -236,7 +229,6 @@ func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Req
 		OnUserUpdate:      a.onUserUpdate,
 		VaultTokenizer:    a.vaultTokenizer,
 		FlashRedirect:     a.flashRedirect,
-		SecureCookie:      a.secureCookie,
 		Layout:            a.render,
 	}
 

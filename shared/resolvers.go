@@ -57,9 +57,6 @@ type OnUserSearchFunc func(ctx context.Context, event UserSearchEvent) ([]string
 type UserImpersonateEvent struct {
 	// UserID is the ID of the user being impersonated.
 	UserID string
-	// Secure controls whether cookies should be marked Secure (false
-	// for HTTP development, true for HTTPS production).
-	Secure bool
 }
 
 // OnUserImpersonateFunc is an optional callback invoked when an admin

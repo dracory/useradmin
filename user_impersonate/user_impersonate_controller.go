@@ -71,12 +71,6 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prevent self-impersonation (no-op that confuses the session).
-	if authUser != nil && authUser.GetID() == userID {
-		shared.FlashError(u.FlashRedirect(), w, r, "You cannot impersonate yourself", usersURL, 15)
-		return
-	}
-
 	// Guard: if OnUserImpersonate is not configured, do nothing. The
 	// route should not be registered in this case, but this prevents
 	// a nil-pointer if called directly.
@@ -87,7 +81,6 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 
 	err = u.OnUserImpersonate()(w, r, shared.UserImpersonateEvent{
 		UserID: userID,
-		Secure: u.SecureCookie(),
 	})
 
 	if err != nil {
