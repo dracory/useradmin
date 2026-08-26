@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
 )
@@ -15,7 +14,7 @@ type UiInterface interface {
 	UserStore() userstore.StoreInterface
 	GeoResolver() GeoResolverInterface
 	Logger() *slog.Logger
-	SessionStore() sessionstore.StoreInterface
+	SessionResolver() SessionResolverInterface
 	BlindIndexFirstName() BlindIndexResolverInterface
 	BlindIndexLastName() BlindIndexResolverInterface
 	BlindIndexEmail() BlindIndexResolverInterface

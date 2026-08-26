@@ -18,7 +18,6 @@ import (
 	"github.com/dracory/useradmin/user_update"
 
 	"github.com/dracory/req"
-	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
 )
@@ -48,8 +47,8 @@ type AdminOptions struct {
 	// Logger is required
 	Logger *slog.Logger
 
-	// SessionStore is required for the impersonate controller.
-	SessionStore sessionstore.StoreInterface
+	// SessionResolver is required for the impersonate controller.
+	SessionResolver shared.SessionResolverInterface
 
 	// BlindIndexFirstName/LastName/Email enable filtered search by
 	// the corresponding field. Optional.
@@ -127,6 +126,7 @@ type (
 	Timezone                    = shared.Timezone
 	BlindIndexSearchType        = shared.BlindIndexSearchType
 	BlindIndexResolverInterface = shared.BlindIndexResolverInterface
+	SessionResolverInterface    = shared.SessionResolverInterface
 	VaultTokenizer              = shared.VaultTokenizer
 	FlashRedirectFunc           = shared.FlashRedirectFunc
 )
@@ -142,7 +142,7 @@ type admin struct {
 	userStore              userstore.StoreInterface
 	geoResolver            shared.GeoResolverInterface
 	logger                 *slog.Logger
-	sessionStore           sessionstore.StoreInterface
+	sessionResolver        shared.SessionResolverInterface
 	blindIndexFirstName    shared.BlindIndexResolverInterface
 	blindIndexLastName     shared.BlindIndexResolverInterface
 	blindIndexEmail        shared.BlindIndexResolverInterface
@@ -168,7 +168,7 @@ type admin struct {
 // New creates a new user admin instance.
 // Returns ErrUserStoreRequired if UserStore is nil, ErrLoggerRequired
 // if Logger is nil, ErrGeoResolverRequired if GeoResolver is nil, and
-// ErrSessionStoreRequired if SessionStore is nil.
+// ErrSessionResolverRequired if SessionResolver is nil.
 //
 // This makes misconfiguration fail fast at construction instead of
 // surfacing as runtime errors inside individual controllers.
@@ -182,8 +182,8 @@ func New(opts AdminOptions) (AdminInterface, error) {
 	if opts.GeoResolver == nil {
 		return nil, ErrGeoResolverRequired
 	}
-	if opts.SessionStore == nil {
-		return nil, ErrSessionStoreRequired
+	if opts.SessionResolver == nil {
+		return nil, ErrSessionResolverRequired
 	}
 
 	// Set defaults
@@ -201,7 +201,7 @@ func New(opts AdminOptions) (AdminInterface, error) {
 		userStore:              opts.UserStore,
 		geoResolver:            opts.GeoResolver,
 		logger:                 opts.Logger,
-		sessionStore:           opts.SessionStore,
+		sessionResolver:        opts.SessionResolver,
 		blindIndexFirstName:    opts.BlindIndexFirstName,
 		blindIndexLastName:     opts.BlindIndexLastName,
 		blindIndexEmail:        opts.BlindIndexEmail,
@@ -261,7 +261,7 @@ func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Req
 		UserStore:                  a.userStore,
 		GeoResolver:                a.geoResolver,
 		Logger:                     a.logger,
-		SessionStore:               a.sessionStore,
+		SessionResolver:            a.sessionResolver,
 		BlindIndexFirstName:        a.blindIndexFirstName,
 		BlindIndexLastName:         a.blindIndexLastName,
 		BlindIndexEmail:            a.blindIndexEmail,

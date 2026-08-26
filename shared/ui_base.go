@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
 )
@@ -16,7 +15,7 @@ type UiBase struct {
 	UserStoreField                  userstore.StoreInterface
 	GeoResolverField                GeoResolverInterface
 	LoggerField                     *slog.Logger
-	SessionStoreField               sessionstore.StoreInterface
+	SessionResolverField            SessionResolverInterface
 	BlindIndexFirstNameField        BlindIndexResolverInterface
 	BlindIndexLastNameField         BlindIndexResolverInterface
 	BlindIndexEmailField            BlindIndexResolverInterface
@@ -34,12 +33,10 @@ type UiBase struct {
 	}) string
 }
 
-func (u UiBase) UserStore() userstore.StoreInterface { return u.UserStoreField }
-func (u UiBase) GeoResolver() GeoResolverInterface   { return u.GeoResolverField }
-func (u UiBase) Logger() *slog.Logger                { return u.LoggerField }
-func (u UiBase) SessionStore() sessionstore.StoreInterface {
-	return u.SessionStoreField
-}
+func (u UiBase) UserStore() userstore.StoreInterface       { return u.UserStoreField }
+func (u UiBase) GeoResolver() GeoResolverInterface         { return u.GeoResolverField }
+func (u UiBase) Logger() *slog.Logger                      { return u.LoggerField }
+func (u UiBase) SessionResolver() SessionResolverInterface { return u.SessionResolverField }
 func (u UiBase) BlindIndexFirstName() BlindIndexResolverInterface {
 	return u.BlindIndexFirstNameField
 }
@@ -76,7 +73,7 @@ func NewUiBase(config UiConfig) UiBase {
 		UserStoreField:                  config.UserStore,
 		GeoResolverField:                config.GeoResolver,
 		LoggerField:                     config.Logger,
-		SessionStoreField:               config.SessionStore,
+		SessionResolverField:            config.SessionResolver,
 		BlindIndexFirstNameField:        config.BlindIndexFirstName,
 		BlindIndexLastNameField:         config.BlindIndexLastName,
 		BlindIndexEmailField:            config.BlindIndexEmail,

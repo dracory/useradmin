@@ -89,7 +89,7 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Impersonate(u.SessionStore(), w, r, userID, u.SecureCookie())
+	err = u.SessionResolver().Create(w, r, userID, u.SecureCookie())
 
 	if err != nil {
 		shared.FlashError(u.FlashRedirect(), w, r, err.Error(), usersURL, 15)

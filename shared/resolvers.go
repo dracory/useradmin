@@ -1,6 +1,9 @@
 package shared
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 // GeoResolverInterface provides countries and timezones. The host
 // implements this against whatever geo data source it uses
@@ -49,4 +52,14 @@ type BlindIndexResolverInterface interface {
 	// Search returns user IDs whose indexed field matches the given
 	// value according to the search type.
 	Search(ctx context.Context, value string, searchType BlindIndexSearchType) ([]string, error)
+}
+
+// SessionResolverInterface creates sessions for impersonation. The host
+// owns the session store, cookie format, and expiry policy.
+type SessionResolverInterface interface {
+	// Create creates a new session for the given user ID and sets the
+	// auth cookie on the response. The secure flag controls whether
+	// the cookie is marked Secure (false for HTTP development, true
+	// for HTTPS production).
+	Create(w http.ResponseWriter, r *http.Request, userID string, secure bool) error
 }

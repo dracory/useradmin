@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
 )
@@ -13,7 +12,7 @@ import (
 // This follows the blogadmin/shopadmin pattern.
 //
 // UserStore, GeoResolver, and Logger are required for core controllers.
-// SessionStore is required for the impersonate controller. The blind
+// SessionCreator is required for the impersonate controller. The blind
 // index stores are optional — when nil, the corresponding search filter
 // is disabled. VaultTokenizer is optional — when nil, user fields are
 // treated as plain text. TaskStore is optional — when nil, blind index
@@ -23,8 +22,8 @@ type UiConfig struct {
 	GeoResolver GeoResolverInterface
 	Logger      *slog.Logger
 
-	// SessionStore is required for the impersonate controller.
-	SessionStore sessionstore.StoreInterface
+	// SessionResolver is required for the impersonate controller.
+	SessionResolver SessionResolverInterface
 
 	// BlindIndexFirstName/LastName/Email enable filtered search by
 	// the corresponding field. Optional.

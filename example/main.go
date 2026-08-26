@@ -25,7 +25,6 @@ import (
 
 	"github.com/dracory/useradmin"
 
-	"github.com/dracory/sessionstore"
 	"github.com/dracory/userstore"
 	_ "modernc.org/sqlite"
 )
@@ -59,28 +58,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	sessionStore, err := sessionstore.NewStore(sessionstore.NewStoreOptions{
-		DB:                 db,
-		SessionTableName:   "session",
-		AutomigrateEnabled: true,
-	})
-	if err != nil {
-		logger.Error("failed to create sessionstore", "err", err)
-		os.Exit(1)
-	}
-
 	// Seed the in-memory DB with sample users so the list page has data.
 	if dbFile == ":memory:" {
 		seedUsers(userStore, logger)
 	}
 
 	admin, err := useradmin.New(useradmin.AdminOptions{
-		UserStore:    userStore,
-		GeoResolver:  &exampleGeoResolver{},
-		Logger:       logger,
-		SessionStore: sessionStore,
-		AdminHomeURL: homeURL,
-		UserAdminURL: adminURL,
+		UserStore:       userStore,
+		GeoResolver:     &exampleGeoResolver{},
+		Logger:          logger,
+		SessionResolver: &exampleSessionResolver{},
+		AdminHomeURL:    homeURL,
+		UserAdminURL:    adminURL,
 		// AuthUserID and AuthUser are intentionally nil so the example
 		// is open. Provide them in a real integration.
 		SecureCookie: false, // example runs on HTTP
@@ -189,6 +178,28 @@ func (r *exampleGeoResolver) Timezones(ctx context.Context, countryCode ...strin
 		return nil, nil
 	}
 	return exampleTimezones[countryCode[0]], nil
+}
+
+// exampleSessionResolver implements useradmin.SessionResolverInterface
+// with a simple in-memory session map and a basic cookie. Demonstrates
+// that no session package is required to satisfy the interface.
+type exampleSessionResolver struct{}
+
+// Compile-time assertion that exampleSessionResolver satisfies useradmin.SessionResolverInterface.
+var _ useradmin.SessionResolverInterface = (*exampleSessionResolver)(nil)
+
+func (r *exampleSessionResolver) Create(w http.ResponseWriter, req *http.Request, userID string, secure bool) error {
+	// Set a simple session cookie. A real implementation would create
+	// a session record in a store and set a signed cookie.
+	http.SetCookie(w, &http.Cookie{
+		Name:     "example_session",
+		Value:    userID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
+	})
+	return nil
 }
 
 const landingHTML = `<!doctype html>
