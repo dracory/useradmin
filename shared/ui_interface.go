@@ -17,7 +17,6 @@ type UiInterface interface {
 	OnUserSearch() OnUserSearchFunc
 	OnUserUpdate() OnUserUpdateFunc
 	VaultTokenizer() VaultTokenizer
-	AuthUser(r *http.Request) userstore.UserInterface
 	FlashRedirect() FlashRedirectFunc
 	SecureCookie() bool
 

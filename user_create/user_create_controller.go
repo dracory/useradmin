@@ -158,14 +158,6 @@ func (u *ui) prepareDataAndValidate(r *http.Request) (data userCreateControllerD
 		return data, "User store is not configured"
 	}
 
-	// When AuthUser callback is provided, enforce authentication.
-	// When nil, the host project is expected to gate the route with
-	// its own auth middleware — skip the check.
-	authUser := u.AuthUser(r)
-	if authUser == nil && u.AuthUserField != nil {
-		return data, "You are not logged in. Please login to continue."
-	}
-
 	data.firstName = strings.TrimSpace(req.GetStringTrimmed(r, "user_first_name"))
 	data.lastName = strings.TrimSpace(req.GetStringTrimmed(r, "user_last_name"))
 	data.email = strings.TrimSpace(req.GetStringTrimmed(r, "user_email"))

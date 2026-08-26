@@ -11,18 +11,22 @@ import (
 // This follows the blogadmin/shopadmin pattern.
 //
 // UserStore, GeoResolver, and Logger are required for core controllers.
-// SessionCreator is required for the impersonate controller. The blind
-// index stores are optional — when nil, the corresponding search filter
-// is disabled. VaultTokenizer is optional — when nil, user fields are
-// treated as plain text. TaskStore is optional — when nil, blind index
-// rebuild enqueue on email change is skipped.
+// OnUserImpersonate is optional — when nil, the impersonate button is
+// hidden and the impersonate route is not registered. OnUserSearch is
+// optional — when nil, useradmin falls back to userstore query-based
+// search. OnUserUpdate is optional — when nil, the callback is skipped.
+// VaultTokenizer is optional — when nil, user fields are treated as
+// plain text.
+//
+// Authentication and authorization are the host's responsibility —
+// gate the routes with middleware before they reach useradmin.
 type UiConfig struct {
 	UserStore   userstore.StoreInterface
 	GeoResolver GeoResolverInterface
 	Logger      *slog.Logger
 
-	// OnUserImpersonate is required for the impersonate controller.
-	// The host owns the auth mechanism (session+cookie, JWT, etc.).
+	// OnUserImpersonate is optional — when nil, the impersonate
+	// button is hidden and the impersonate route is not registered.
 	OnUserImpersonate OnUserImpersonateFunc
 
 	// OnUserSearch is an optional callback for custom user search
@@ -39,11 +43,6 @@ type UiConfig struct {
 	// VaultTokenizer abstracts vault tokenization. Optional — when
 	// nil, user fields are treated as plain text.
 	VaultTokenizer VaultTokenizer
-
-	// AuthUser returns the authenticated user from the request, or
-	// nil if unauthenticated. Used by the create/delete/impersonate
-	// controllers for authorization checks.
-	AuthUser func(r *http.Request) userstore.UserInterface
 
 	// FlashRedirect redirects with a flash message. Optional — when
 	// nil, plain http.Redirect is used.

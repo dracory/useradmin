@@ -10,8 +10,8 @@
 // Then open http://localhost:8080/ in your browser.
 //
 // The example is open (no authentication) so you can click around
-// immediately. To wire authentication, provide AuthUserID and AuthUser
-// callbacks that read your session/JWT from the request context.
+// immediately. In a real integration, gate the admin routes with auth
+// middleware before they reach useradmin.
 package main
 
 import (
@@ -70,9 +70,7 @@ func main() {
 		OnUserImpersonate: exampleOnUserImpersonate,
 		AdminHomeURL:      homeURL,
 		UserAdminURL:      adminURL,
-		// AuthUserID and AuthUser are intentionally nil so the example
-		// is open. Provide them in a real integration.
-		SecureCookie: false, // example runs on HTTP
+		SecureCookie:      false, // example runs on HTTP
 	})
 	if err != nil {
 		logger.Error("failed to create useradmin", "err", err)

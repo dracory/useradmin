@@ -40,18 +40,6 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 		userHomeURL = shared.AdminHomeURL(r)
 	}
 
-	authUser := u.AuthUser(r)
-
-	if authUser == nil {
-		shared.FlashError(u.FlashRedirect(), w, r, "User not found", usersURL, 15)
-		return
-	}
-
-	if !authUser.IsAdministrator() {
-		shared.FlashError(u.FlashRedirect(), w, r, "Not authorized", usersURL, 15)
-		return
-	}
-
 	userID := req.GetStringTrimmed(r, "user_id")
 
 	if userID == "" {

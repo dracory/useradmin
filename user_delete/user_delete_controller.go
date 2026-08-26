@@ -144,15 +144,7 @@ func (u *ui) prepareDataAndValidate(r *http.Request) (data userDeleteControllerD
 		return data, "User store is not configured"
 	}
 
-	// When AuthUser callback is provided, enforce authentication.
-	// When nil, the host project is expected to gate the route with
-	// its own auth middleware — skip the check.
-	authUser := u.AuthUser(r)
 	data.userID = req.GetString(r, "user_id")
-
-	if authUser == nil && u.AuthUserField != nil {
-		return data, "You are not logged in. Please login to continue."
-	}
 
 	if data.userID == "" {
 		return data, "user id is required"

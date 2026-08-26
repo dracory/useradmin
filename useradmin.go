@@ -66,17 +66,6 @@ type AdminOptions struct {
 	// nil, user fields are treated as plain text.
 	VaultTokenizer shared.VaultTokenizer
 
-	// AuthUser returns the authenticated user from the request, or
-	// nil if unauthenticated. Used by the create/delete/impersonate
-	// controllers for authorization checks.
-	AuthUser func(r *http.Request) userstore.UserInterface
-
-	// AuthUserID returns the authenticated user ID from the request.
-	// If it returns "", the user is treated as unauthenticated and
-	// redirected to AdminHomeURL. If nil, the auth check is skipped
-	// (the host project is expected to gate the route).
-	AuthUserID func(r *http.Request) string
-
 	// FlashRedirect redirects with a flash message. Optional — when
 	// nil, plain http.Redirect is used.
 	FlashRedirect shared.FlashRedirectFunc
@@ -141,8 +130,6 @@ type admin struct {
 	onUserSearch      shared.OnUserSearchFunc
 	onUserUpdate      shared.OnUserUpdateFunc
 	vaultTokenizer    shared.VaultTokenizer
-	authUser          func(r *http.Request) userstore.UserInterface
-	authUserID        func(r *http.Request) string
 	flashRedirect     shared.FlashRedirectFunc
 	secureCookie      bool
 	funcLayout        func(w http.ResponseWriter, r *http.Request, title string, body string, options struct {
@@ -196,8 +183,6 @@ func New(opts AdminOptions) (AdminInterface, error) {
 		onUserSearch:      opts.OnUserSearch,
 		onUserUpdate:      opts.OnUserUpdate,
 		vaultTokenizer:    opts.VaultTokenizer,
-		authUser:          opts.AuthUser,
-		authUserID:        opts.AuthUserID,
 		flashRedirect:     opts.FlashRedirect,
 		secureCookie:      opts.SecureCookie,
 		funcLayout:        opts.FuncLayout,
@@ -215,13 +200,10 @@ func New(opts AdminOptions) (AdminInterface, error) {
 // Handle processes all user admin requests.
 // Config values are injected into the request context (following the
 // blogadmin/shopadmin pattern). Route lookup is map-based.
+//
+// Authentication and authorization are the host's responsibility —
+// gate the routes with middleware before they reach Handle.
 func (a *admin) Handle(w http.ResponseWriter, r *http.Request) {
-	// Check authentication
-	if a.authUserID != nil && a.authUserID(r) == "" {
-		http.Redirect(w, r, a.adminHomeURL, http.StatusSeeOther)
-		return
-	}
-
 	// Inject config into request context (like blogadmin/shopadmin)
 	ctx := context.WithValue(r.Context(), shared.KeyEndpoint, r.URL.Path)
 	ctx = context.WithValue(ctx, shared.KeyAdminHomeURL, a.adminHomeURL)
@@ -253,7 +235,6 @@ func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Req
 		OnUserSearch:      a.onUserSearch,
 		OnUserUpdate:      a.onUserUpdate,
 		VaultTokenizer:    a.vaultTokenizer,
-		AuthUser:          a.authUser,
 		FlashRedirect:     a.flashRedirect,
 		SecureCookie:      a.secureCookie,
 		Layout:            a.render,

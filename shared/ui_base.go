@@ -18,7 +18,6 @@ type UiBase struct {
 	OnUserSearchField      OnUserSearchFunc
 	OnUserUpdateField      OnUserUpdateFunc
 	VaultTokenizerField    VaultTokenizer
-	AuthUserField          func(r *http.Request) userstore.UserInterface
 	FlashRedirectField     FlashRedirectFunc
 	SecureCookieField      bool
 	LayoutField            func(w http.ResponseWriter, r *http.Request, webpageTitle, webpageHtml string, options struct {
@@ -36,14 +35,8 @@ func (u UiBase) OnUserImpersonate() OnUserImpersonateFunc { return u.OnUserImper
 func (u UiBase) OnUserSearch() OnUserSearchFunc           { return u.OnUserSearchField }
 func (u UiBase) OnUserUpdate() OnUserUpdateFunc           { return u.OnUserUpdateField }
 func (u UiBase) VaultTokenizer() VaultTokenizer           { return u.VaultTokenizerField }
-func (u UiBase) AuthUser(r *http.Request) userstore.UserInterface {
-	if u.AuthUserField == nil {
-		return nil
-	}
-	return u.AuthUserField(r)
-}
-func (u UiBase) FlashRedirect() FlashRedirectFunc { return u.FlashRedirectField }
-func (u UiBase) SecureCookie() bool               { return u.SecureCookieField }
+func (u UiBase) FlashRedirect() FlashRedirectFunc         { return u.FlashRedirectField }
+func (u UiBase) SecureCookie() bool                       { return u.SecureCookieField }
 
 func (u UiBase) Layout(w http.ResponseWriter, r *http.Request, webpageTitle, webpageHtml string, options struct {
 	Styles     []string
@@ -64,7 +57,6 @@ func NewUiBase(config UiConfig) UiBase {
 		OnUserSearchField:      config.OnUserSearch,
 		OnUserUpdateField:      config.OnUserUpdate,
 		VaultTokenizerField:    config.VaultTokenizer,
-		AuthUserField:          config.AuthUser,
 		FlashRedirectField:     config.FlashRedirect,
 		SecureCookieField:      config.SecureCookie,
 		LayoutField:            config.Layout,
