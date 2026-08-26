@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
 )
 
@@ -15,11 +14,8 @@ type UiInterface interface {
 	GeoResolver() GeoResolverInterface
 	Logger() *slog.Logger
 	SessionResolver() SessionResolverInterface
-	BlindIndexFirstName() BlindIndexResolverInterface
-	BlindIndexLastName() BlindIndexResolverInterface
-	BlindIndexEmail() BlindIndexResolverInterface
-	TaskStore() taskstore.StoreInterface
-	BlindIndexRebuildTaskAlias() string
+	OnUserSearch() OnUserSearchFunc
+	OnUserUpdate() OnUserUpdateFunc
 	VaultTokenizer() VaultTokenizer
 	AuthUser(r *http.Request) userstore.UserInterface
 	FlashRedirect() FlashRedirectFunc

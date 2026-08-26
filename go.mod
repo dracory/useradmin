@@ -10,7 +10,6 @@ require (
 	github.com/dracory/hb v1.88.0
 	github.com/dracory/neat v0.40.0
 	github.com/dracory/req v0.1.0
-	github.com/dracory/taskstore v1.30.0
 	github.com/dracory/userstore v1.18.0
 	modernc.org/sqlite v1.57.0
 )
@@ -26,7 +25,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
-	github.com/teambition/rrule-go v1.8.2 // indirect
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260824195058-e88cd73687aa // indirect
 	golang.org/x/net v0.58.0 // indirect

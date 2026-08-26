@@ -8,7 +8,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/dracory/api"
-	"github.com/dracory/taskstore"
+	"github.com/dracory/useradmin/shared"
 	"github.com/dracory/userstore"
 )
 
@@ -155,22 +155,16 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 
 	// When vault tokenization is enabled and the email changed, enqueue
 	// a blind index rebuild task so search stays consistent.
-	if u.VaultTokenizer() != nil && u.TaskStore() != nil && u.BlindIndexRebuildTaskAlias() != "" {
-		if originalEmail != strings.TrimSpace(payload.Email) {
-			_, err := u.TaskStore().TaskDefinitionEnqueueByAlias(
-				r.Context(),
-				taskstore.DefaultQueueName,
-				u.BlindIndexRebuildTaskAlias(),
-				map[string]any{
-					"index":    "email",
-					"truncate": "no",
-				},
-			)
-			if err != nil {
-				if u.Logger() != nil {
-					u.Logger().Error("Error enqueuing blind index rebuild", slog.String("error", err.Error()))
-				}
-			}
+	// After a successful update, emit an event so the host can react
+	// (e.g. enqueue a blind index rebuild when the email changed).
+	if u.OnUserUpdate() != nil {
+		newEmail := strings.TrimSpace(payload.Email)
+		if originalEmail != newEmail {
+			u.OnUserUpdate()(r.Context(), shared.UserUpdateEvent{
+				UserID:        user.GetID(),
+				OriginalEmail: originalEmail,
+				NewEmail:      newEmail,
+			})
 		}
 	}
 

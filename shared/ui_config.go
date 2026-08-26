@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
 )
 
@@ -25,19 +24,16 @@ type UiConfig struct {
 	// SessionResolver is required for the impersonate controller.
 	SessionResolver SessionResolverInterface
 
-	// BlindIndexFirstName/LastName/Email enable filtered search by
-	// the corresponding field. Optional.
-	BlindIndexFirstName BlindIndexResolverInterface
-	BlindIndexLastName  BlindIndexResolverInterface
-	BlindIndexEmail     BlindIndexResolverInterface
+	// OnUserSearch is an optional callback for custom user search
+	// (e.g. blind index, Elasticsearch). When nil, useradmin falls
+	// back to userstore query-based search.
+	OnUserSearch OnUserSearchFunc
 
-	// TaskStore is used to enqueue a blind index rebuild when a user's
-	// email changes and vault tokenization is enabled. Optional.
-	TaskStore taskstore.StoreInterface
-
-	// BlindIndexRebuildTaskAlias is the task alias enqueued on email
-	// change. If empty, the enqueue is skipped.
-	BlindIndexRebuildTaskAlias string
+	// OnUserUpdate is an optional callback invoked after a user is
+	// updated. The host can use it to trigger side effects (blind
+	// index rebuild, audit log, notifications, etc.). When nil, the
+	// callback is skipped.
+	OnUserUpdate OnUserUpdateFunc
 
 	// VaultTokenizer abstracts vault tokenization. Optional — when
 	// nil, user fields are treated as plain text.

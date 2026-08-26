@@ -51,15 +51,17 @@ func (u *ui) handleUserCreateAjax(w http.ResponseWriter, r *http.Request) string
 		return ""
 	}
 
-	// Check email uniqueness before creating. When vault tokenization
-	// is enabled, the blind index email store is the only way to detect
-	// duplicates (the userstore holds tokens, not plaintext). When vault
-	// is disabled, query the userstore directly.
-	if u.VaultTokenizer() != nil && u.BlindIndexEmail() != nil {
-		ids, err := u.BlindIndexEmail().Search(r.Context(), email, shared.BlindIndexSearchEquals)
+	// Check email uniqueness before creating. When OnUserSearch is
+	// provided, use it (e.g. blind index when vault tokenization is
+	// enabled). Otherwise, query the userstore directly.
+	if u.OnUserSearch() != nil {
+		ids, err := u.OnUserSearch()(r.Context(), shared.UserSearchEvent{
+			Email:      email,
+			ExactMatch: true,
+		})
 		if err != nil {
 			if u.Logger() != nil {
-				u.Logger().Error("userManagerController.handleUserCreateAjax blind index email", slog.String("error", err.Error()))
+				u.Logger().Error("userManagerController.handleUserCreateAjax OnUserSearch", slog.String("error", err.Error()))
 			}
 			api.Respond(w, r, api.Error("Failed to verify email uniqueness"))
 			return ""

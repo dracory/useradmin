@@ -18,7 +18,6 @@ import (
 	"github.com/dracory/useradmin/user_update"
 
 	"github.com/dracory/req"
-	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
 )
 
@@ -50,19 +49,16 @@ type AdminOptions struct {
 	// SessionResolver is required for the impersonate controller.
 	SessionResolver shared.SessionResolverInterface
 
-	// BlindIndexFirstName/LastName/Email enable filtered search by
-	// the corresponding field. Optional.
-	BlindIndexFirstName shared.BlindIndexResolverInterface
-	BlindIndexLastName  shared.BlindIndexResolverInterface
-	BlindIndexEmail     shared.BlindIndexResolverInterface
+	// OnUserSearch is an optional callback for custom user search
+	// (e.g. blind index, Elasticsearch). When nil, useradmin falls
+	// back to userstore query-based search.
+	OnUserSearch shared.OnUserSearchFunc
 
-	// TaskStore is used to enqueue a blind index rebuild when a user's
-	// email changes and vault tokenization is enabled. Optional.
-	TaskStore taskstore.StoreInterface
-
-	// BlindIndexRebuildTaskAlias is the task alias enqueued on email
-	// change. If empty, the enqueue is skipped.
-	BlindIndexRebuildTaskAlias string
+	// OnUserUpdate is an optional callback invoked after a user is
+	// updated. The host can use it to trigger side effects (blind
+	// index rebuild, audit log, notifications, etc.). When nil, the
+	// callback is skipped.
+	OnUserUpdate shared.OnUserUpdateFunc
 
 	// VaultTokenizer abstracts vault tokenization. Optional — when
 	// nil, user fields are treated as plain text.
@@ -121,39 +117,32 @@ type AdminInterface interface {
 // the top-level useradmin package without reaching into useradmin/shared.
 // Follows the blogadmin/shopadmin convention (e.g. shopadmin.CustomerResolverInterface).
 type (
-	GeoResolverInterface        = shared.GeoResolverInterface
-	Country                     = shared.Country
-	Timezone                    = shared.Timezone
-	BlindIndexSearchType        = shared.BlindIndexSearchType
-	BlindIndexResolverInterface = shared.BlindIndexResolverInterface
-	SessionResolverInterface    = shared.SessionResolverInterface
-	VaultTokenizer              = shared.VaultTokenizer
-	FlashRedirectFunc           = shared.FlashRedirectFunc
-)
-
-// Re-exported constants from shared.
-const (
-	BlindIndexSearchEquals   = shared.BlindIndexSearchEquals
-	BlindIndexSearchContains = shared.BlindIndexSearchContains
+	GeoResolverInterface     = shared.GeoResolverInterface
+	Country                  = shared.Country
+	Timezone                 = shared.Timezone
+	UserSearchEvent          = shared.UserSearchEvent
+	OnUserSearchFunc         = shared.OnUserSearchFunc
+	SessionResolverInterface = shared.SessionResolverInterface
+	UserUpdateEvent          = shared.UserUpdateEvent
+	OnUserUpdateFunc         = shared.OnUserUpdateFunc
+	VaultTokenizer           = shared.VaultTokenizer
+	FlashRedirectFunc        = shared.FlashRedirectFunc
 )
 
 // admin implements AdminInterface
 type admin struct {
-	userStore              userstore.StoreInterface
-	geoResolver            shared.GeoResolverInterface
-	logger                 *slog.Logger
-	sessionResolver        shared.SessionResolverInterface
-	blindIndexFirstName    shared.BlindIndexResolverInterface
-	blindIndexLastName     shared.BlindIndexResolverInterface
-	blindIndexEmail        shared.BlindIndexResolverInterface
-	taskStore              taskstore.StoreInterface
-	blindIndexRebuildAlias string
-	vaultTokenizer         shared.VaultTokenizer
-	authUser               func(r *http.Request) userstore.UserInterface
-	authUserID             func(r *http.Request) string
-	flashRedirect          shared.FlashRedirectFunc
-	secureCookie           bool
-	funcLayout             func(w http.ResponseWriter, r *http.Request, title string, body string, options struct {
+	userStore       userstore.StoreInterface
+	geoResolver     shared.GeoResolverInterface
+	logger          *slog.Logger
+	sessionResolver shared.SessionResolverInterface
+	onUserSearch    shared.OnUserSearchFunc
+	onUserUpdate    shared.OnUserUpdateFunc
+	vaultTokenizer  shared.VaultTokenizer
+	authUser        func(r *http.Request) userstore.UserInterface
+	authUserID      func(r *http.Request) string
+	flashRedirect   shared.FlashRedirectFunc
+	secureCookie    bool
+	funcLayout      func(w http.ResponseWriter, r *http.Request, title string, body string, options struct {
 		Styles     []string
 		StyleURLs  []string
 		Scripts    []string
@@ -198,24 +187,21 @@ func New(opts AdminOptions) (AdminInterface, error) {
 	}
 
 	a := &admin{
-		userStore:              opts.UserStore,
-		geoResolver:            opts.GeoResolver,
-		logger:                 opts.Logger,
-		sessionResolver:        opts.SessionResolver,
-		blindIndexFirstName:    opts.BlindIndexFirstName,
-		blindIndexLastName:     opts.BlindIndexLastName,
-		blindIndexEmail:        opts.BlindIndexEmail,
-		taskStore:              opts.TaskStore,
-		blindIndexRebuildAlias: opts.BlindIndexRebuildTaskAlias,
-		vaultTokenizer:         opts.VaultTokenizer,
-		authUser:               opts.AuthUser,
-		authUserID:             opts.AuthUserID,
-		flashRedirect:          opts.FlashRedirect,
-		secureCookie:           opts.SecureCookie,
-		funcLayout:             opts.FuncLayout,
-		adminHomeURL:           opts.AdminHomeURL,
-		userAdminURL:           opts.UserAdminURL,
-		userHomeURL:            opts.UserHomeURL,
+		userStore:       opts.UserStore,
+		geoResolver:     opts.GeoResolver,
+		logger:          opts.Logger,
+		sessionResolver: opts.SessionResolver,
+		onUserSearch:    opts.OnUserSearch,
+		onUserUpdate:    opts.OnUserUpdate,
+		vaultTokenizer:  opts.VaultTokenizer,
+		authUser:        opts.AuthUser,
+		authUserID:      opts.AuthUserID,
+		flashRedirect:   opts.FlashRedirect,
+		secureCookie:    opts.SecureCookie,
+		funcLayout:      opts.FuncLayout,
+		adminHomeURL:    opts.AdminHomeURL,
+		userAdminURL:    opts.UserAdminURL,
+		userHomeURL:     opts.UserHomeURL,
 	}
 
 	// Build routes once at construction time
@@ -258,20 +244,17 @@ func (a *admin) Handle(w http.ResponseWriter, r *http.Request) {
 // buildRoutes creates the handler dispatch map once at construction time.
 func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Request) {
 	uiConfig := shared.UiConfig{
-		UserStore:                  a.userStore,
-		GeoResolver:                a.geoResolver,
-		Logger:                     a.logger,
-		SessionResolver:            a.sessionResolver,
-		BlindIndexFirstName:        a.blindIndexFirstName,
-		BlindIndexLastName:         a.blindIndexLastName,
-		BlindIndexEmail:            a.blindIndexEmail,
-		TaskStore:                  a.taskStore,
-		BlindIndexRebuildTaskAlias: a.blindIndexRebuildAlias,
-		VaultTokenizer:             a.vaultTokenizer,
-		AuthUser:                   a.authUser,
-		FlashRedirect:              a.flashRedirect,
-		SecureCookie:               a.secureCookie,
-		Layout:                     a.render,
+		UserStore:       a.userStore,
+		GeoResolver:     a.geoResolver,
+		Logger:          a.logger,
+		SessionResolver: a.sessionResolver,
+		OnUserSearch:    a.onUserSearch,
+		OnUserUpdate:    a.onUserUpdate,
+		VaultTokenizer:  a.vaultTokenizer,
+		AuthUser:        a.authUser,
+		FlashRedirect:   a.flashRedirect,
+		SecureCookie:    a.secureCookie,
+		Layout:          a.render,
 	}
 
 	return map[string]func(w http.ResponseWriter, r *http.Request){

@@ -190,9 +190,14 @@ func (u *ui) prepareDataAndValidate(r *http.Request) (data userCreateControllerD
 		return data, "user email is invalid"
 	}
 
-	// Check email uniqueness before creating.
-	if u.BlindIndexEmail() != nil && u.VaultTokenizer() != nil {
-		ids, err := u.BlindIndexEmail().Search(r.Context(), data.email, shared.BlindIndexSearchEquals)
+	// Check email uniqueness before creating. When OnUserSearch is
+	// provided, use it (e.g. blind index when vault tokenization is
+	// enabled). Otherwise, query the userstore directly.
+	if u.OnUserSearch() != nil {
+		ids, err := u.OnUserSearch()(r.Context(), shared.UserSearchEvent{
+			Email:      data.email,
+			ExactMatch: true,
+		})
 		if err != nil {
 			if u.Logger() != nil {
 				u.Logger().Error("userCreateController email uniqueness check", slog.String("error", err.Error()))

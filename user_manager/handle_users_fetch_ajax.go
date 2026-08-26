@@ -96,63 +96,41 @@ func (u *ui) handleUsersFetchAjax(w http.ResponseWriter, r *http.Request) string
 		query.SetCreatedAtLte(createdTo + " 23:59:59")
 	}
 
-	// Collect blind index search results as separate ID sets so we can
-	// intersect them (AND semantics). A user must match ALL active
-	// filters to be included. If any filter returns zero results, the
-	// overall result is empty.
-	var filterIDSets [][]string
-
-	if firstName != "" && u.BlindIndexFirstName() != nil {
-		ids, err := u.BlindIndexFirstName().Search(r.Context(), firstName, shared.BlindIndexSearchContains)
-		if err != nil {
-			if u.Logger() != nil {
-				u.Logger().Error("userManagerController.handleUsersFetchAjax blind index first_name", slog.String("error", err.Error()))
+	// When OnUserSearch is provided, use it to find matching user IDs
+	// (e.g. blind index, Elasticsearch). When nil, fall back to
+	// userstore query-based search (SetFirstNameLike, etc.).
+	var filteredIDs []string
+	if firstName != "" || lastName != "" || email != "" {
+		if u.OnUserSearch() != nil {
+			ids, err := u.OnUserSearch()(r.Context(), shared.UserSearchEvent{
+				FirstName:  firstName,
+				LastName:   lastName,
+				Email:      email,
+				ExactMatch: false,
+			})
+			if err != nil {
+				if u.Logger() != nil {
+					u.Logger().Error("userManagerController.handleUsersFetchAjax OnUserSearch", slog.String("error", err.Error()))
+				}
+			}
+			if len(ids) == 0 {
+				api.Respond(w, r, api.SuccessWithData("", map[string]interface{}{FieldUsers: []interface{}{}, FieldTotal: 0}))
+				return ""
+			}
+			filteredIDs = ids
+			query.SetIDIn(filteredIDs)
+		} else {
+			// Fallback: userstore query-based search
+			if firstName != "" {
+				query.SetFirstNameLike(firstName)
+			}
+			if lastName != "" {
+				query.SetLastNameLike(lastName)
+			}
+			if email != "" {
+				query.SetEmailLike(email)
 			}
 		}
-		if len(ids) == 0 {
-			api.Respond(w, r, api.SuccessWithData("", map[string]interface{}{FieldUsers: []interface{}{}, FieldTotal: 0}))
-			return ""
-		}
-		filterIDSets = append(filterIDSets, ids)
-	}
-
-	if lastName != "" && u.BlindIndexLastName() != nil {
-		ids, err := u.BlindIndexLastName().Search(r.Context(), lastName, shared.BlindIndexSearchContains)
-		if err != nil {
-			if u.Logger() != nil {
-				u.Logger().Error("userManagerController.handleUsersFetchAjax blind index last_name", slog.String("error", err.Error()))
-			}
-		}
-		if len(ids) == 0 {
-			api.Respond(w, r, api.SuccessWithData("", map[string]interface{}{FieldUsers: []interface{}{}, FieldTotal: 0}))
-			return ""
-		}
-		filterIDSets = append(filterIDSets, ids)
-	}
-
-	if email != "" && u.BlindIndexEmail() != nil {
-		ids, err := u.BlindIndexEmail().Search(r.Context(), email, shared.BlindIndexSearchContains)
-		if err != nil {
-			if u.Logger() != nil {
-				u.Logger().Error("userManagerController.handleUsersFetchAjax blind index email", slog.String("error", err.Error()))
-			}
-		}
-		if len(ids) == 0 {
-			api.Respond(w, r, api.SuccessWithData("", map[string]interface{}{FieldUsers: []interface{}{}, FieldTotal: 0}))
-			return ""
-		}
-		filterIDSets = append(filterIDSets, ids)
-	}
-
-	// Intersect all filter ID sets (AND semantics). When only one
-	// filter is active, the intersection is that set itself.
-	if len(filterIDSets) > 0 {
-		intersected := intersectIDSets(filterIDSets)
-		if len(intersected) == 0 {
-			api.Respond(w, r, api.SuccessWithData("", map[string]interface{}{FieldUsers: []interface{}{}, FieldTotal: 0}))
-			return ""
-		}
-		query.SetIDIn(intersected)
 	}
 
 	userList, err := u.UserStore().UserList(r.Context(), query)
@@ -182,9 +160,8 @@ func (u *ui) handleUsersFetchAjax(w http.ResponseWriter, r *http.Request) string
 	if createdTo != "" {
 		countQuery.SetCreatedAtLte(createdTo + " 23:59:59")
 	}
-	if len(filterIDSets) > 0 {
-		intersected := intersectIDSets(filterIDSets)
-		countQuery.SetIDIn(intersected)
+	if len(filteredIDs) > 0 {
+		countQuery.SetIDIn(filteredIDs)
 	}
 
 	userCount, err := u.UserStore().UserCount(r.Context(), countQuery)
@@ -231,44 +208,4 @@ func (u *ui) handleUsersFetchAjax(w http.ResponseWriter, r *http.Request) string
 		FieldTotal: userCount,
 	}))
 	return ""
-}
-
-// intersectIDSets computes the intersection of multiple ID slices.
-// Returns IDs that appear in ALL input slices. If any slice is empty,
-// the result is empty. Order follows the first slice.
-func intersectIDSets(sets [][]string) []string {
-	if len(sets) == 0 {
-		return nil
-	}
-	if len(sets) == 1 {
-		return sets[0]
-	}
-
-	// Build a count map: how many sets each ID appears in.
-	counts := make(map[string]int, len(sets[0]))
-	order := make([]string, 0, len(sets[0]))
-	for _, id := range sets[0] {
-		if counts[id] == 0 {
-			order = append(order, id)
-		}
-		counts[id]++
-	}
-	for _, s := range sets[1:] {
-		seen := make(map[string]bool, len(s))
-		for _, id := range s {
-			if !seen[id] {
-				seen[id] = true
-				counts[id]++
-			}
-		}
-	}
-
-	// Keep only IDs that appear in all sets.
-	result := make([]string, 0, len(order))
-	for _, id := range order {
-		if counts[id] == len(sets) {
-			result = append(result, id)
-		}
-	}
-	return result
 }
