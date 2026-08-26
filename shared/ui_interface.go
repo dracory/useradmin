@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/dracory/blindindexstore"
-	"github.com/dracory/geostore"
 	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
@@ -15,7 +14,7 @@ import (
 // This follows the blogadmin/shopadmin pattern.
 type UiInterface interface {
 	UserStore() userstore.StoreInterface
-	GeoStore() geostore.StoreInterface
+	GeoResolver() GeoResolverInterface
 	Logger() *slog.Logger
 	SessionStore() sessionstore.StoreInterface
 	BlindIndexFirstName() blindindexstore.StoreInterface

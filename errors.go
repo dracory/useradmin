@@ -15,8 +15,8 @@ var (
 	// session for the impersonated user.
 	ErrSessionStoreRequired = errors.New("session store is required for the impersonate controller")
 
-	// ErrGeoStoreRequired is returned when GeoStore is not provided.
-	// The user update controller needs it to list countries and
-	// timezones.
-	ErrGeoStoreRequired = errors.New("geo store is required for the user update controller")
+	// ErrGeoResolverRequired is returned when GeoResolver is not
+	// provided. The user update controller needs it to list countries
+	// and timezones.
+	ErrGeoResolverRequired = errors.New("geo resolver is required for the user update controller")
 )

@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -22,6 +23,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/dracory/neat"
 	"github.com/dracory/useradmin"
 
 	"github.com/dracory/geostore"
@@ -31,11 +33,11 @@ import (
 )
 
 const (
-	addr     = ":8080"
-	dbFile   = ":memory:"
-	adminURL = "/admin/users"
-	homeURL  = "/admin"
-	dbDriver = "sqlite"
+	addr      = ":8080"
+	dbFile    = ":memory:"
+	adminURL  = "/admin/users"
+	homeURL   = "/admin"
+	dbDriver  = "sqlite"
 	dsnSuffix = "?parseTime=true"
 )
 
@@ -89,7 +91,7 @@ func main() {
 
 	admin, err := useradmin.New(useradmin.AdminOptions{
 		UserStore:    userStore,
-		GeoStore:     geoStore,
+		GeoResolver:  &exampleGeoResolver{geoStore: geoStore},
 		Logger:       logger,
 		SessionStore: sessionStore,
 		AdminHomeURL: homeURL,
@@ -161,6 +163,49 @@ func portFromAddr(addr string) string {
 		return addr
 	}
 	return addr[i:]
+}
+
+// exampleGeoResolver adapts geostore.StoreInterface to
+// useradmin.GeoResolverInterface for the example server.
+type exampleGeoResolver struct {
+	geoStore geostore.StoreInterface
+}
+
+// Compile-time assertion that exampleGeoResolver satisfies useradmin.GeoResolverInterface.
+var _ useradmin.GeoResolverInterface = (*exampleGeoResolver)(nil)
+
+func (r *exampleGeoResolver) Countries(ctx context.Context) ([]useradmin.Country, error) {
+	list, err := r.geoStore.CountryList(ctx, geostore.CountryQueryOptions{
+		SortOrder: neat.SortAsc,
+		OrderBy:   geostore.COLUMN_NAME,
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]useradmin.Country, 0, len(list))
+	for _, c := range list {
+		out = append(out, useradmin.Country{IsoCode2: c.IsoCode2(), Name: c.Name()})
+	}
+	return out, nil
+}
+
+func (r *exampleGeoResolver) Timezones(ctx context.Context, countryCode ...string) ([]useradmin.Timezone, error) {
+	if len(countryCode) == 0 || countryCode[0] == "" {
+		return nil, nil
+	}
+	list, err := r.geoStore.TimezoneList(ctx, geostore.TimezoneQueryOptions{
+		SortOrder:   neat.SortAsc,
+		OrderBy:     geostore.COLUMN_TIMEZONE,
+		CountryCode: countryCode[0],
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]useradmin.Timezone, 0, len(list))
+	for _, tz := range list {
+		out = append(out, useradmin.Timezone{Code: tz.Timezone()})
+	}
+	return out, nil
 }
 
 const landingHTML = `<!doctype html>

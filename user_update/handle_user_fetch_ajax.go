@@ -5,9 +5,8 @@ import (
 	"net/http"
 
 	"github.com/dracory/api"
-	"github.com/dracory/geostore"
-	"github.com/dracory/neat"
 	"github.com/dracory/req"
+	"github.com/dracory/useradmin/shared"
 )
 
 func (u *ui) handleUserFetchAjax(w http.ResponseWriter, r *http.Request) {
@@ -86,21 +85,18 @@ func (u *ui) handleUserFetchAjax(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if u.GeoStore() == nil {
+	if u.GeoResolver() == nil {
 		if u.Logger() != nil {
-			u.Logger().Error("userUpdateController.handleUserFetchAjax GeoStore not configured")
+			u.Logger().Error("userUpdateController.handleUserFetchAjax GeoResolver not configured")
 		}
-		api.Respond(w, r, api.Error("GeoStore is not configured"))
+		api.Respond(w, r, api.Error("GeoResolver is not configured"))
 		return
 	}
 
-	countryList, err := u.GeoStore().CountryList(r.Context(), geostore.CountryQueryOptions{
-		SortOrder: neat.SortAsc,
-		OrderBy:   geostore.COLUMN_NAME,
-	})
+	countryList, err := u.GeoResolver().Countries(r.Context())
 	if err != nil {
 		if u.Logger() != nil {
-			u.Logger().Error("userUpdateController.handleUserFetchAjax CountryList", slog.String("error", err.Error()))
+			u.Logger().Error("userUpdateController.handleUserFetchAjax Countries", slog.String("error", err.Error()))
 		}
 		api.Respond(w, r, api.Error("Failed to load countries"))
 		return
@@ -108,19 +104,18 @@ func (u *ui) handleUserFetchAjax(w http.ResponseWriter, r *http.Request) {
 	countries := make([]map[string]string, 0, len(countryList))
 	for _, c := range countryList {
 		countries = append(countries, map[string]string{
-			FieldIsoCode2: c.IsoCode2(),
-			FieldName:     c.Name(),
+			FieldIsoCode2: c.IsoCode2,
+			FieldName:     c.Name,
 		})
 	}
 
-	timezoneList, err := u.GeoStore().TimezoneList(r.Context(), geostore.TimezoneQueryOptions{
-		SortOrder:   neat.SortAsc,
-		OrderBy:     geostore.COLUMN_TIMEZONE,
-		CountryCode: country,
-	})
+	var timezoneList []shared.Timezone
+	if country != "" {
+		timezoneList, err = u.GeoResolver().Timezones(r.Context(), country)
+	}
 	if err != nil {
 		if u.Logger() != nil {
-			u.Logger().Error("userUpdateController.handleUserFetchAjax TimezoneList", slog.String("error", err.Error()))
+			u.Logger().Error("userUpdateController.handleUserFetchAjax Timezones", slog.String("error", err.Error()))
 		}
 		api.Respond(w, r, api.Error("Failed to load timezones"))
 		return
@@ -128,7 +123,7 @@ func (u *ui) handleUserFetchAjax(w http.ResponseWriter, r *http.Request) {
 	timezones := make([]map[string]string, 0, len(timezoneList))
 	for _, tz := range timezoneList {
 		timezones = append(timezones, map[string]string{
-			FieldTimezone: tz.Timezone(),
+			FieldTimezone: tz.Code,
 		})
 	}
 

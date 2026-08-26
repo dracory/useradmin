@@ -18,7 +18,6 @@ import (
 	"github.com/dracory/useradmin/user_update"
 
 	"github.com/dracory/blindindexstore"
-	"github.com/dracory/geostore"
 	"github.com/dracory/req"
 	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
@@ -28,7 +27,7 @@ import (
 // AdminOptions contains all dependencies and configuration for the
 // user admin.
 //
-// UserStore, GeoStore, and Logger are required. SessionStore is
+// UserStore, GeoResolver, and Logger are required. SessionStore is
 // required for the impersonate controller. Blind index stores,
 // TaskStore, and VaultTokenizer are optional — when nil, the
 // corresponding features degrade gracefully (filtered search disabled,
@@ -43,9 +42,9 @@ type AdminOptions struct {
 	// UserStore is required
 	UserStore userstore.StoreInterface
 
-	// GeoStore is required for the user update controller (country and
-	// timezone lists).
-	GeoStore geostore.StoreInterface
+	// GeoResolver is required for the user update controller (country
+	// and timezone lists).
+	GeoResolver shared.GeoResolverInterface
 
 	// Logger is required
 	Logger *slog.Logger
@@ -120,10 +119,21 @@ type AdminInterface interface {
 	Handle(w http.ResponseWriter, r *http.Request)
 }
 
+// Re-exports of shared types so consumers can import everything from
+// the top-level useradmin package without reaching into useradmin/shared.
+// Follows the blogadmin/shopadmin convention (e.g. shopadmin.CustomerResolverInterface).
+type (
+	GeoResolverInterface = shared.GeoResolverInterface
+	Country              = shared.Country
+	Timezone             = shared.Timezone
+	VaultTokenizer       = shared.VaultTokenizer
+	FlashRedirectFunc    = shared.FlashRedirectFunc
+)
+
 // admin implements AdminInterface
 type admin struct {
 	userStore              userstore.StoreInterface
-	geoStore               geostore.StoreInterface
+	geoResolver            shared.GeoResolverInterface
 	logger                 *slog.Logger
 	sessionStore           sessionstore.StoreInterface
 	blindIndexFirstName    blindindexstore.StoreInterface
@@ -150,7 +160,7 @@ type admin struct {
 
 // New creates a new user admin instance.
 // Returns ErrUserStoreRequired if UserStore is nil, ErrLoggerRequired
-// if Logger is nil, ErrGeoStoreRequired if GeoStore is nil, and
+// if Logger is nil, ErrGeoResolverRequired if GeoResolver is nil, and
 // ErrSessionStoreRequired if SessionStore is nil.
 //
 // This makes misconfiguration fail fast at construction instead of
@@ -162,8 +172,8 @@ func New(opts AdminOptions) (AdminInterface, error) {
 	if opts.Logger == nil {
 		return nil, ErrLoggerRequired
 	}
-	if opts.GeoStore == nil {
-		return nil, ErrGeoStoreRequired
+	if opts.GeoResolver == nil {
+		return nil, ErrGeoResolverRequired
 	}
 	if opts.SessionStore == nil {
 		return nil, ErrSessionStoreRequired
@@ -182,7 +192,7 @@ func New(opts AdminOptions) (AdminInterface, error) {
 
 	a := &admin{
 		userStore:              opts.UserStore,
-		geoStore:               opts.GeoStore,
+		geoResolver:            opts.GeoResolver,
 		logger:                 opts.Logger,
 		sessionStore:           opts.SessionStore,
 		blindIndexFirstName:    opts.BlindIndexFirstName,
@@ -242,7 +252,7 @@ func (a *admin) Handle(w http.ResponseWriter, r *http.Request) {
 func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Request) {
 	uiConfig := shared.UiConfig{
 		UserStore:                  a.userStore,
-		GeoStore:                   a.geoStore,
+		GeoResolver:                a.geoResolver,
 		Logger:                     a.logger,
 		SessionStore:               a.sessionStore,
 		BlindIndexFirstName:        a.blindIndexFirstName,

@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"github.com/dracory/api"
-	"github.com/dracory/geostore"
-	"github.com/dracory/neat"
 	"github.com/dracory/req"
 )
 
@@ -20,19 +18,15 @@ func (u *ui) handleTimezonesFetchAjax(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if u.GeoStore() == nil {
+	if u.GeoResolver() == nil {
 		if u.Logger() != nil {
-			u.Logger().Error("userUpdateController.handleTimezonesFetchAjax GeoStore not configured")
+			u.Logger().Error("userUpdateController.handleTimezonesFetchAjax GeoResolver not configured")
 		}
-		api.Respond(w, r, api.Error("GeoStore is not configured"))
+		api.Respond(w, r, api.Error("GeoResolver is not configured"))
 		return
 	}
 
-	timezoneList, err := u.GeoStore().TimezoneList(r.Context(), geostore.TimezoneQueryOptions{
-		SortOrder:   neat.SortAsc,
-		OrderBy:     geostore.COLUMN_TIMEZONE,
-		CountryCode: countryCode,
-	})
+	timezoneList, err := u.GeoResolver().Timezones(r.Context(), countryCode)
 	if err != nil {
 		api.Respond(w, r, api.Error("Failed to load timezones"))
 		return
@@ -41,7 +35,7 @@ func (u *ui) handleTimezonesFetchAjax(w http.ResponseWriter, r *http.Request) {
 	timezones := make([]map[string]string, 0, len(timezoneList))
 	for _, tz := range timezoneList {
 		timezones = append(timezones, map[string]string{
-			FieldTimezone: tz.Timezone(),
+			FieldTimezone: tz.Code,
 		})
 	}
 

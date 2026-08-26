@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/dracory/blindindexstore"
-	"github.com/dracory/geostore"
 	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
@@ -14,16 +13,16 @@ import (
 // UiConfig holds the dependencies passed to subcontroller UI factories.
 // This follows the blogadmin/shopadmin pattern.
 //
-// UserStore, GeoStore, and Logger are required for core controllers.
+// UserStore, GeoResolver, and Logger are required for core controllers.
 // SessionStore is required for the impersonate controller. The blind
 // index stores are optional — when nil, the corresponding search filter
 // is disabled. VaultTokenizer is optional — when nil, user fields are
 // treated as plain text. TaskStore is optional — when nil, blind index
 // rebuild enqueue on email change is skipped.
 type UiConfig struct {
-	UserStore userstore.StoreInterface
-	GeoStore  geostore.StoreInterface
-	Logger    *slog.Logger
+	UserStore   userstore.StoreInterface
+	GeoResolver GeoResolverInterface
+	Logger      *slog.Logger
 
 	// SessionStore is required for the impersonate controller.
 	SessionStore sessionstore.StoreInterface
