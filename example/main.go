@@ -70,7 +70,6 @@ func main() {
 		OnUserImpersonate: exampleOnUserImpersonate,
 		AdminHomeURL:      homeURL,
 		UserAdminURL:      adminURL,
-		SecureCookie:      false, // example runs on HTTP
 	})
 	if err != nil {
 		logger.Error("failed to create useradmin", "err", err)
@@ -187,7 +186,7 @@ func exampleOnUserImpersonate(w http.ResponseWriter, r *http.Request, event user
 		Value:    event.UserID,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   event.Secure,
+		Secure:   r.TLS != nil,
 		SameSite: http.SameSiteLaxMode,
 	})
 	return nil
