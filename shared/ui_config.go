@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/dracory/blindindexstore"
 	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
@@ -29,9 +28,9 @@ type UiConfig struct {
 
 	// BlindIndexFirstName/LastName/Email enable filtered search by
 	// the corresponding field. Optional.
-	BlindIndexFirstName blindindexstore.StoreInterface
-	BlindIndexLastName  blindindexstore.StoreInterface
-	BlindIndexEmail     blindindexstore.StoreInterface
+	BlindIndexFirstName BlindIndexResolverInterface
+	BlindIndexLastName  BlindIndexResolverInterface
+	BlindIndexEmail     BlindIndexResolverInterface
 
 	// TaskStore is used to enqueue a blind index rebuild when a user's
 	// email changes and vault tokenization is enabled. Optional.

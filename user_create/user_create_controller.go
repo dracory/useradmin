@@ -192,7 +192,7 @@ func (u *ui) prepareDataAndValidate(r *http.Request) (data userCreateControllerD
 
 	// Check email uniqueness before creating.
 	if u.BlindIndexEmail() != nil && u.VaultTokenizer() != nil {
-		ids, err := u.BlindIndexEmail().Search(r.Context(), data.email, "equals")
+		ids, err := u.BlindIndexEmail().Search(r.Context(), data.email, shared.BlindIndexSearchEquals)
 		if err != nil {
 			if u.Logger() != nil {
 				u.Logger().Error("userCreateController email uniqueness check", slog.String("error", err.Error()))

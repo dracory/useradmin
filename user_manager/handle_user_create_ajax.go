@@ -8,7 +8,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/dracory/api"
-	"github.com/dracory/blindindexstore"
+	"github.com/dracory/useradmin/shared"
 	"github.com/dracory/userstore"
 )
 
@@ -56,7 +56,7 @@ func (u *ui) handleUserCreateAjax(w http.ResponseWriter, r *http.Request) string
 	// duplicates (the userstore holds tokens, not plaintext). When vault
 	// is disabled, query the userstore directly.
 	if u.VaultTokenizer() != nil && u.BlindIndexEmail() != nil {
-		ids, err := u.BlindIndexEmail().Search(r.Context(), email, blindindexstore.SEARCH_TYPE_EQUALS)
+		ids, err := u.BlindIndexEmail().Search(r.Context(), email, shared.BlindIndexSearchEquals)
 		if err != nil {
 			if u.Logger() != nil {
 				u.Logger().Error("userManagerController.handleUserCreateAjax blind index email", slog.String("error", err.Error()))

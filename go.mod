@@ -6,7 +6,6 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/dracory/api v1.8.0
 	github.com/dracory/auth v0.35.0
-	github.com/dracory/blindindexstore v1.17.0
 	github.com/dracory/bs v0.16.0
 	github.com/dracory/cdn v1.11.0
 	github.com/dracory/geostore v1.10.0

@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/dracory/api"
-	"github.com/dracory/blindindexstore"
 	"github.com/dracory/neat"
+	"github.com/dracory/useradmin/shared"
 	"github.com/dracory/userstore"
 )
 
@@ -103,7 +103,7 @@ func (u *ui) handleUsersFetchAjax(w http.ResponseWriter, r *http.Request) string
 	var filterIDSets [][]string
 
 	if firstName != "" && u.BlindIndexFirstName() != nil {
-		ids, err := u.BlindIndexFirstName().Search(r.Context(), firstName, blindindexstore.SEARCH_TYPE_CONTAINS)
+		ids, err := u.BlindIndexFirstName().Search(r.Context(), firstName, shared.BlindIndexSearchContains)
 		if err != nil {
 			if u.Logger() != nil {
 				u.Logger().Error("userManagerController.handleUsersFetchAjax blind index first_name", slog.String("error", err.Error()))
@@ -117,7 +117,7 @@ func (u *ui) handleUsersFetchAjax(w http.ResponseWriter, r *http.Request) string
 	}
 
 	if lastName != "" && u.BlindIndexLastName() != nil {
-		ids, err := u.BlindIndexLastName().Search(r.Context(), lastName, blindindexstore.SEARCH_TYPE_CONTAINS)
+		ids, err := u.BlindIndexLastName().Search(r.Context(), lastName, shared.BlindIndexSearchContains)
 		if err != nil {
 			if u.Logger() != nil {
 				u.Logger().Error("userManagerController.handleUsersFetchAjax blind index last_name", slog.String("error", err.Error()))
@@ -131,7 +131,7 @@ func (u *ui) handleUsersFetchAjax(w http.ResponseWriter, r *http.Request) string
 	}
 
 	if email != "" && u.BlindIndexEmail() != nil {
-		ids, err := u.BlindIndexEmail().Search(r.Context(), email, blindindexstore.SEARCH_TYPE_CONTAINS)
+		ids, err := u.BlindIndexEmail().Search(r.Context(), email, shared.BlindIndexSearchContains)
 		if err != nil {
 			if u.Logger() != nil {
 				u.Logger().Error("userManagerController.handleUsersFetchAjax blind index email", slog.String("error", err.Error()))

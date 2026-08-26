@@ -17,7 +17,6 @@ import (
 	"github.com/dracory/useradmin/user_manager"
 	"github.com/dracory/useradmin/user_update"
 
-	"github.com/dracory/blindindexstore"
 	"github.com/dracory/req"
 	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
@@ -54,9 +53,9 @@ type AdminOptions struct {
 
 	// BlindIndexFirstName/LastName/Email enable filtered search by
 	// the corresponding field. Optional.
-	BlindIndexFirstName blindindexstore.StoreInterface
-	BlindIndexLastName  blindindexstore.StoreInterface
-	BlindIndexEmail     blindindexstore.StoreInterface
+	BlindIndexFirstName shared.BlindIndexResolverInterface
+	BlindIndexLastName  shared.BlindIndexResolverInterface
+	BlindIndexEmail     shared.BlindIndexResolverInterface
 
 	// TaskStore is used to enqueue a blind index rebuild when a user's
 	// email changes and vault tokenization is enabled. Optional.
@@ -123,11 +122,19 @@ type AdminInterface interface {
 // the top-level useradmin package without reaching into useradmin/shared.
 // Follows the blogadmin/shopadmin convention (e.g. shopadmin.CustomerResolverInterface).
 type (
-	GeoResolverInterface = shared.GeoResolverInterface
-	Country              = shared.Country
-	Timezone             = shared.Timezone
-	VaultTokenizer       = shared.VaultTokenizer
-	FlashRedirectFunc    = shared.FlashRedirectFunc
+	GeoResolverInterface        = shared.GeoResolverInterface
+	Country                     = shared.Country
+	Timezone                    = shared.Timezone
+	BlindIndexSearchType        = shared.BlindIndexSearchType
+	BlindIndexResolverInterface = shared.BlindIndexResolverInterface
+	VaultTokenizer              = shared.VaultTokenizer
+	FlashRedirectFunc           = shared.FlashRedirectFunc
+)
+
+// Re-exported constants from shared.
+const (
+	BlindIndexSearchEquals   = shared.BlindIndexSearchEquals
+	BlindIndexSearchContains = shared.BlindIndexSearchContains
 )
 
 // admin implements AdminInterface
@@ -136,9 +143,9 @@ type admin struct {
 	geoResolver            shared.GeoResolverInterface
 	logger                 *slog.Logger
 	sessionStore           sessionstore.StoreInterface
-	blindIndexFirstName    blindindexstore.StoreInterface
-	blindIndexLastName     blindindexstore.StoreInterface
-	blindIndexEmail        blindindexstore.StoreInterface
+	blindIndexFirstName    shared.BlindIndexResolverInterface
+	blindIndexLastName     shared.BlindIndexResolverInterface
+	blindIndexEmail        shared.BlindIndexResolverInterface
 	taskStore              taskstore.StoreInterface
 	blindIndexRebuildAlias string
 	vaultTokenizer         shared.VaultTokenizer

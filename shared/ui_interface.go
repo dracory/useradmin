@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/dracory/blindindexstore"
 	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
@@ -17,9 +16,9 @@ type UiInterface interface {
 	GeoResolver() GeoResolverInterface
 	Logger() *slog.Logger
 	SessionStore() sessionstore.StoreInterface
-	BlindIndexFirstName() blindindexstore.StoreInterface
-	BlindIndexLastName() blindindexstore.StoreInterface
-	BlindIndexEmail() blindindexstore.StoreInterface
+	BlindIndexFirstName() BlindIndexResolverInterface
+	BlindIndexLastName() BlindIndexResolverInterface
+	BlindIndexEmail() BlindIndexResolverInterface
 	TaskStore() taskstore.StoreInterface
 	BlindIndexRebuildTaskAlias() string
 	VaultTokenizer() VaultTokenizer

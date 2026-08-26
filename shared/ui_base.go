@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/dracory/blindindexstore"
 	"github.com/dracory/sessionstore"
 	"github.com/dracory/taskstore"
 	"github.com/dracory/userstore"
@@ -18,9 +17,9 @@ type UiBase struct {
 	GeoResolverField                GeoResolverInterface
 	LoggerField                     *slog.Logger
 	SessionStoreField               sessionstore.StoreInterface
-	BlindIndexFirstNameField        blindindexstore.StoreInterface
-	BlindIndexLastNameField         blindindexstore.StoreInterface
-	BlindIndexEmailField            blindindexstore.StoreInterface
+	BlindIndexFirstNameField        BlindIndexResolverInterface
+	BlindIndexLastNameField         BlindIndexResolverInterface
+	BlindIndexEmailField            BlindIndexResolverInterface
 	TaskStoreField                  taskstore.StoreInterface
 	BlindIndexRebuildTaskAliasField string
 	VaultTokenizerField             VaultTokenizer
@@ -41,13 +40,13 @@ func (u UiBase) Logger() *slog.Logger                { return u.LoggerField }
 func (u UiBase) SessionStore() sessionstore.StoreInterface {
 	return u.SessionStoreField
 }
-func (u UiBase) BlindIndexFirstName() blindindexstore.StoreInterface {
+func (u UiBase) BlindIndexFirstName() BlindIndexResolverInterface {
 	return u.BlindIndexFirstNameField
 }
-func (u UiBase) BlindIndexLastName() blindindexstore.StoreInterface {
+func (u UiBase) BlindIndexLastName() BlindIndexResolverInterface {
 	return u.BlindIndexLastNameField
 }
-func (u UiBase) BlindIndexEmail() blindindexstore.StoreInterface {
+func (u UiBase) BlindIndexEmail() BlindIndexResolverInterface {
 	return u.BlindIndexEmailField
 }
 func (u UiBase) TaskStore() taskstore.StoreInterface { return u.TaskStoreField }
