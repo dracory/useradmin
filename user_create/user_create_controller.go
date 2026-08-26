@@ -186,9 +186,8 @@ func (u *ui) prepareDataAndValidate(r *http.Request) (data userCreateControllerD
 	// provided, use it (e.g. blind index when vault tokenization is
 	// enabled). Otherwise, query the userstore directly.
 	if u.OnUserSearch() != nil {
-		ids, err := u.OnUserSearch()(r.Context(), shared.UserSearchEvent{
-			Email:      data.email,
-			ExactMatch: true,
+		ids, err := u.OnUserSearch()(r.Context(), []shared.SearchCondition{
+			{Field: shared.SearchFieldEmail, Op: shared.SearchOpEquals, Value: data.email},
 		})
 		if err != nil {
 			if u.Logger() != nil {

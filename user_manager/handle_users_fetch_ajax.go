@@ -102,12 +102,23 @@ func (u *ui) handleUsersFetchAjax(w http.ResponseWriter, r *http.Request) string
 	var filteredIDs []string
 	if firstName != "" || lastName != "" || email != "" {
 		if u.OnUserSearch() != nil {
-			ids, err := u.OnUserSearch()(r.Context(), shared.UserSearchEvent{
-				FirstName:  firstName,
-				LastName:   lastName,
-				Email:      email,
-				ExactMatch: false,
-			})
+			conditions := []shared.SearchCondition{}
+			if firstName != "" {
+				conditions = append(conditions, shared.SearchCondition{
+					Field: shared.SearchFieldFirstName, Op: shared.SearchOpContains, Value: firstName,
+				})
+			}
+			if lastName != "" {
+				conditions = append(conditions, shared.SearchCondition{
+					Field: shared.SearchFieldLastName, Op: shared.SearchOpContains, Value: lastName,
+				})
+			}
+			if email != "" {
+				conditions = append(conditions, shared.SearchCondition{
+					Field: shared.SearchFieldEmail, Op: shared.SearchOpContains, Value: email,
+				})
+			}
+			ids, err := u.OnUserSearch()(r.Context(), conditions)
 			if err != nil {
 				if u.Logger() != nil {
 					u.Logger().Error("userManagerController.handleUsersFetchAjax OnUserSearch", slog.String("error", err.Error()))

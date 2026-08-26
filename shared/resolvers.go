@@ -32,27 +32,54 @@ type Timezone struct {
 	Code string
 }
 
-// UserSearchEvent is passed to OnUserSearch callbacks when the user
-// list is filtered or when an email uniqueness check is performed.
-type UserSearchEvent struct {
-	// FirstName filters by first name. Empty means no filter.
-	FirstName string
-	// LastName filters by last name. Empty means no filter.
-	LastName string
-	// Email filters by email. Empty means no filter.
-	Email string
-	// ExactMatch when true means exact match (used for uniqueness
-	// checks). When false means substring match (used for list
-	// filtering).
-	ExactMatch bool
+// SearchOp defines the comparison operator for a SearchCondition.
+type SearchOp string
+
+const (
+	SearchOpEquals      SearchOp = "eq"
+	SearchOpContains    SearchOp = "contains"
+	SearchOpNotContains SearchOp = "not_contains"
+	SearchOpStartsWith  SearchOp = "starts_with"
+)
+
+// SearchField constants identify the user fields that can be filtered.
+type SearchField string
+
+const (
+	SearchFieldFirstName    SearchField = "first_name"
+	SearchFieldLastName     SearchField = "last_name"
+	SearchFieldEmail        SearchField = "email"
+	SearchFieldPhone        SearchField = "phone"
+	SearchFieldBusinessName SearchField = "business_name"
+)
+
+// SearchCombine defines how a condition combines with the previous one.
+// The first condition's CombineWith is ignored.
+type SearchCombine string
+
+const (
+	SearchAnd SearchCombine = "AND"
+	SearchOr  SearchCombine = "OR"
+)
+
+// SearchCondition is a single filter criterion passed to OnUserSearch.
+type SearchCondition struct {
+	// Field is the user field to filter on.
+	Field SearchField
+	// Op is the comparison operator.
+	Op SearchOp
+	// Value is the value to compare against.
+	Value string
+	// CombineWith specifies how this condition combines with the
+	// previous one. Defaults to AND. Ignored for the first condition.
+	CombineWith SearchCombine
 }
 
 // OnUserSearchFunc is an optional callback for custom user search.
-// The host can use it to search via blind index, Elasticsearch, or any
-// other backend. When nil, useradmin falls back to userstore
-// query-based search (SetFirstNameLike, SetLastNameLike, SetEmailLike
-// for substring; SetEmail for exact match).
-type OnUserSearchFunc func(ctx context.Context, event UserSearchEvent) ([]string, error)
+// The host receives a list of conditions and applies whatever logic
+// it wants (blind index, Elasticsearch, etc.). When nil, useradmin
+// falls back to userstore query-based search.
+type OnUserSearchFunc func(ctx context.Context, conditions []SearchCondition) ([]string, error)
 
 // OnUserImpersonateFunc is an optional callback invoked when an admin
 // impersonates a user. The host owns the auth mechanism — it can

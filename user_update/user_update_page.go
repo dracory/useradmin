@@ -69,7 +69,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	returnURL := shared.JSEscapeString(userManagerURL)
 	urlGetUser := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionUserFetch, "user_id": userID}))
 	urlGetTimezones := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionGetTimezones}))
-	urlUpdateUser := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actiOnUserUpdated}))
+	urlUpdateUser := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionUserUpdate}))
 	escapedUserID := shared.JSEscapeString(userID)
 
 	html := strings.ReplaceAll(formHTML, "USER_ID_PLACEHOLDER", "'"+escapedUserID+"'")

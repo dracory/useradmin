@@ -118,14 +118,40 @@ type (
 	GeoResolverInterface  = shared.GeoResolverInterface
 	Country               = shared.Country
 	Timezone              = shared.Timezone
-	UserSearchEvent       = shared.UserSearchEvent
+	SearchCondition       = shared.SearchCondition
+	SearchOp              = shared.SearchOp
+	SearchField           = shared.SearchField
+	SearchCombine         = shared.SearchCombine
 	OnUserSearchFunc      = shared.OnUserSearchFunc
 	OnUserImpersonateFunc = shared.OnUserImpersonateFunc
-	OnUserUpdatedFunc      = shared.OnUserUpdatedFunc
+	OnUserUpdatedFunc     = shared.OnUserUpdatedFunc
 	UserPiiSealFunc       = shared.UserPiiSealFunc
 	UserPiiUnsealFunc     = shared.UserPiiUnsealFunc
 	UsersPiiUnsealFunc    = shared.UsersPiiUnsealFunc
 	FlashRedirectFunc     = shared.FlashRedirectFunc
+)
+
+// Search operator constants.
+const (
+	SearchOpEquals      = shared.SearchOpEquals
+	SearchOpContains    = shared.SearchOpContains
+	SearchOpNotContains = shared.SearchOpNotContains
+	SearchOpStartsWith  = shared.SearchOpStartsWith
+)
+
+// Search field constants.
+const (
+	SearchFieldFirstName    = shared.SearchFieldFirstName
+	SearchFieldLastName     = shared.SearchFieldLastName
+	SearchFieldEmail        = shared.SearchFieldEmail
+	SearchFieldPhone        = shared.SearchFieldPhone
+	SearchFieldBusinessName = shared.SearchFieldBusinessName
+)
+
+// Search combinator constants.
+const (
+	SearchAnd = shared.SearchAnd
+	SearchOr  = shared.SearchOr
 )
 
 // admin implements AdminInterface
@@ -135,7 +161,7 @@ type admin struct {
 	logger            *slog.Logger
 	onUserImpersonate shared.OnUserImpersonateFunc
 	onUserSearch      shared.OnUserSearchFunc
-	OnUserUpdated      shared.OnUserUpdatedFunc
+	onUserUpdated     shared.OnUserUpdatedFunc
 	userPiiSeal       shared.UserPiiSealFunc
 	userPiiUnseal     shared.UserPiiUnsealFunc
 	usersPiiUnseal    shared.UsersPiiUnsealFunc
@@ -189,7 +215,7 @@ func New(opts AdminOptions) (AdminInterface, error) {
 		logger:            opts.Logger,
 		onUserImpersonate: opts.OnUserImpersonate,
 		onUserSearch:      opts.OnUserSearch,
-		OnUserUpdated:      opts.OnUserUpdated,
+		onUserUpdated:     opts.OnUserUpdated,
 		userPiiSeal:       opts.UserPiiSeal,
 		userPiiUnseal:     opts.UserPiiUnseal,
 		usersPiiUnseal:    opts.UsersPiiUnseal,
@@ -242,7 +268,7 @@ func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Req
 		Logger:            a.logger,
 		OnUserImpersonate: a.onUserImpersonate,
 		OnUserSearch:      a.onUserSearch,
-		OnUserUpdated:      a.OnUserUpdated,
+		OnUserUpdated:     a.onUserUpdated,
 		UserPiiSeal:       a.userPiiSeal,
 		UserPiiUnseal:     a.userPiiUnseal,
 		UsersPiiUnseal:    a.usersPiiUnseal,
