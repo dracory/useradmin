@@ -89,7 +89,10 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = u.SessionResolver().Create(w, r, userID, u.SecureCookie())
+	err = u.OnUserImpersonate()(w, r, shared.UserImpersonateEvent{
+		UserID: userID,
+		Secure: u.SecureCookie(),
+	})
 
 	if err != nil {
 		shared.FlashError(u.FlashRedirect(), w, r, err.Error(), usersURL, 15)

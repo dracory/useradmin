@@ -52,15 +52,21 @@ type UserSearchEvent struct {
 // for substring; SetEmail for exact match).
 type OnUserSearchFunc func(ctx context.Context, event UserSearchEvent) ([]string, error)
 
-// SessionResolverInterface creates sessions for impersonation. The host
-// owns the session store, cookie format, and expiry policy.
-type SessionResolverInterface interface {
-	// Create creates a new session for the given user ID and sets the
-	// auth cookie on the response. The secure flag controls whether
-	// the cookie is marked Secure (false for HTTP development, true
-	// for HTTPS production).
-	Create(w http.ResponseWriter, r *http.Request, userID string, secure bool) error
+// UserImpersonateEvent is passed to OnUserImpersonate callbacks when
+// an admin impersonates a user.
+type UserImpersonateEvent struct {
+	// UserID is the ID of the user being impersonated.
+	UserID string
+	// Secure controls whether cookies should be marked Secure (false
+	// for HTTP development, true for HTTPS production).
+	Secure bool
 }
+
+// OnUserImpersonateFunc is an optional callback invoked when an admin
+// impersonates a user. The host owns the auth mechanism — it can
+// create a session record and set a cookie, issue a JWT, or anything
+// else. When nil, impersonation is disabled.
+type OnUserImpersonateFunc func(w http.ResponseWriter, r *http.Request, event UserImpersonateEvent) error
 
 // UserUpdateEvent is passed to OnUserUpdate callbacks after a user is
 // updated. It carries the information the host may need to react —

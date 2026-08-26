@@ -46,8 +46,10 @@ type AdminOptions struct {
 	// Logger is required
 	Logger *slog.Logger
 
-	// SessionResolver is required for the impersonate controller.
-	SessionResolver shared.SessionResolverInterface
+	// OnUserImpersonate is optional — when nil, the impersonate
+	// button is hidden and the impersonate route is not registered.
+	// The host owns the auth mechanism (session+cookie, JWT, etc.).
+	OnUserImpersonate shared.OnUserImpersonateFunc
 
 	// OnUserSearch is an optional callback for custom user search
 	// (e.g. blind index, Elasticsearch). When nil, useradmin falls
@@ -117,32 +119,33 @@ type AdminInterface interface {
 // the top-level useradmin package without reaching into useradmin/shared.
 // Follows the blogadmin/shopadmin convention (e.g. shopadmin.CustomerResolverInterface).
 type (
-	GeoResolverInterface     = shared.GeoResolverInterface
-	Country                  = shared.Country
-	Timezone                 = shared.Timezone
-	UserSearchEvent          = shared.UserSearchEvent
-	OnUserSearchFunc         = shared.OnUserSearchFunc
-	SessionResolverInterface = shared.SessionResolverInterface
-	UserUpdateEvent          = shared.UserUpdateEvent
-	OnUserUpdateFunc         = shared.OnUserUpdateFunc
-	VaultTokenizer           = shared.VaultTokenizer
-	FlashRedirectFunc        = shared.FlashRedirectFunc
+	GeoResolverInterface  = shared.GeoResolverInterface
+	Country               = shared.Country
+	Timezone              = shared.Timezone
+	UserSearchEvent       = shared.UserSearchEvent
+	OnUserSearchFunc      = shared.OnUserSearchFunc
+	UserImpersonateEvent  = shared.UserImpersonateEvent
+	OnUserImpersonateFunc = shared.OnUserImpersonateFunc
+	UserUpdateEvent       = shared.UserUpdateEvent
+	OnUserUpdateFunc      = shared.OnUserUpdateFunc
+	VaultTokenizer        = shared.VaultTokenizer
+	FlashRedirectFunc     = shared.FlashRedirectFunc
 )
 
 // admin implements AdminInterface
 type admin struct {
-	userStore       userstore.StoreInterface
-	geoResolver     shared.GeoResolverInterface
-	logger          *slog.Logger
-	sessionResolver shared.SessionResolverInterface
-	onUserSearch    shared.OnUserSearchFunc
-	onUserUpdate    shared.OnUserUpdateFunc
-	vaultTokenizer  shared.VaultTokenizer
-	authUser        func(r *http.Request) userstore.UserInterface
-	authUserID      func(r *http.Request) string
-	flashRedirect   shared.FlashRedirectFunc
-	secureCookie    bool
-	funcLayout      func(w http.ResponseWriter, r *http.Request, title string, body string, options struct {
+	userStore         userstore.StoreInterface
+	geoResolver       shared.GeoResolverInterface
+	logger            *slog.Logger
+	onUserImpersonate shared.OnUserImpersonateFunc
+	onUserSearch      shared.OnUserSearchFunc
+	onUserUpdate      shared.OnUserUpdateFunc
+	vaultTokenizer    shared.VaultTokenizer
+	authUser          func(r *http.Request) userstore.UserInterface
+	authUserID        func(r *http.Request) string
+	flashRedirect     shared.FlashRedirectFunc
+	secureCookie      bool
+	funcLayout        func(w http.ResponseWriter, r *http.Request, title string, body string, options struct {
 		Styles     []string
 		StyleURLs  []string
 		Scripts    []string
@@ -156,8 +159,10 @@ type admin struct {
 
 // New creates a new user admin instance.
 // Returns ErrUserStoreRequired if UserStore is nil, ErrLoggerRequired
-// if Logger is nil, ErrGeoResolverRequired if GeoResolver is nil, and
-// ErrSessionResolverRequired if SessionResolver is nil.
+// if Logger is nil, ErrGeoResolverRequired if GeoResolver is nil.
+//
+// OnUserImpersonate is optional — when nil, the impersonate button is
+// hidden and the impersonate route returns 404.
 //
 // This makes misconfiguration fail fast at construction instead of
 // surfacing as runtime errors inside individual controllers.
@@ -170,9 +175,6 @@ func New(opts AdminOptions) (AdminInterface, error) {
 	}
 	if opts.GeoResolver == nil {
 		return nil, ErrGeoResolverRequired
-	}
-	if opts.SessionResolver == nil {
-		return nil, ErrSessionResolverRequired
 	}
 
 	// Set defaults
@@ -187,21 +189,21 @@ func New(opts AdminOptions) (AdminInterface, error) {
 	}
 
 	a := &admin{
-		userStore:       opts.UserStore,
-		geoResolver:     opts.GeoResolver,
-		logger:          opts.Logger,
-		sessionResolver: opts.SessionResolver,
-		onUserSearch:    opts.OnUserSearch,
-		onUserUpdate:    opts.OnUserUpdate,
-		vaultTokenizer:  opts.VaultTokenizer,
-		authUser:        opts.AuthUser,
-		authUserID:      opts.AuthUserID,
-		flashRedirect:   opts.FlashRedirect,
-		secureCookie:    opts.SecureCookie,
-		funcLayout:      opts.FuncLayout,
-		adminHomeURL:    opts.AdminHomeURL,
-		userAdminURL:    opts.UserAdminURL,
-		userHomeURL:     opts.UserHomeURL,
+		userStore:         opts.UserStore,
+		geoResolver:       opts.GeoResolver,
+		logger:            opts.Logger,
+		onUserImpersonate: opts.OnUserImpersonate,
+		onUserSearch:      opts.OnUserSearch,
+		onUserUpdate:      opts.OnUserUpdate,
+		vaultTokenizer:    opts.VaultTokenizer,
+		authUser:          opts.AuthUser,
+		authUserID:        opts.AuthUserID,
+		flashRedirect:     opts.FlashRedirect,
+		secureCookie:      opts.SecureCookie,
+		funcLayout:        opts.FuncLayout,
+		adminHomeURL:      opts.AdminHomeURL,
+		userAdminURL:      opts.UserAdminURL,
+		userHomeURL:       opts.UserHomeURL,
 	}
 
 	// Build routes once at construction time
@@ -244,17 +246,17 @@ func (a *admin) Handle(w http.ResponseWriter, r *http.Request) {
 // buildRoutes creates the handler dispatch map once at construction time.
 func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Request) {
 	uiConfig := shared.UiConfig{
-		UserStore:       a.userStore,
-		GeoResolver:     a.geoResolver,
-		Logger:          a.logger,
-		SessionResolver: a.sessionResolver,
-		OnUserSearch:    a.onUserSearch,
-		OnUserUpdate:    a.onUserUpdate,
-		VaultTokenizer:  a.vaultTokenizer,
-		AuthUser:        a.authUser,
-		FlashRedirect:   a.flashRedirect,
-		SecureCookie:    a.secureCookie,
-		Layout:          a.render,
+		UserStore:         a.userStore,
+		GeoResolver:       a.geoResolver,
+		Logger:            a.logger,
+		OnUserImpersonate: a.onUserImpersonate,
+		OnUserSearch:      a.onUserSearch,
+		OnUserUpdate:      a.onUserUpdate,
+		VaultTokenizer:    a.vaultTokenizer,
+		AuthUser:          a.authUser,
+		FlashRedirect:     a.flashRedirect,
+		SecureCookie:      a.secureCookie,
+		Layout:            a.render,
 	}
 
 	return map[string]func(w http.ResponseWriter, r *http.Request){

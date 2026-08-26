@@ -64,12 +64,12 @@ func main() {
 	}
 
 	admin, err := useradmin.New(useradmin.AdminOptions{
-		UserStore:       userStore,
-		GeoResolver:     &exampleGeoResolver{},
-		Logger:          logger,
-		SessionResolver: &exampleSessionResolver{},
-		AdminHomeURL:    homeURL,
-		UserAdminURL:    adminURL,
+		UserStore:         userStore,
+		GeoResolver:       &exampleGeoResolver{},
+		Logger:            logger,
+		OnUserImpersonate: exampleOnUserImpersonate,
+		AdminHomeURL:      homeURL,
+		UserAdminURL:      adminURL,
 		// AuthUserID and AuthUser are intentionally nil so the example
 		// is open. Provide them in a real integration.
 		SecureCookie: false, // example runs on HTTP
@@ -180,23 +180,16 @@ func (r *exampleGeoResolver) Timezones(ctx context.Context, countryCode ...strin
 	return exampleTimezones[countryCode[0]], nil
 }
 
-// exampleSessionResolver implements useradmin.SessionResolverInterface
-// with a simple in-memory session map and a basic cookie. Demonstrates
-// that no session package is required to satisfy the interface.
-type exampleSessionResolver struct{}
-
-// Compile-time assertion that exampleSessionResolver satisfies useradmin.SessionResolverInterface.
-var _ useradmin.SessionResolverInterface = (*exampleSessionResolver)(nil)
-
-func (r *exampleSessionResolver) Create(w http.ResponseWriter, req *http.Request, userID string, secure bool) error {
-	// Set a simple session cookie. A real implementation would create
-	// a session record in a store and set a signed cookie.
+// exampleOnUserImpersonate is an OnUserImpersonateFunc that sets a
+// simple session cookie. Demonstrates that no session package is
+// required to satisfy the callback.
+func exampleOnUserImpersonate(w http.ResponseWriter, r *http.Request, event useradmin.UserImpersonateEvent) error {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "example_session",
-		Value:    userID,
+		Value:    event.UserID,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   secure,
+		Secure:   event.Secure,
 		SameSite: http.SameSiteLaxMode,
 	})
 	return nil

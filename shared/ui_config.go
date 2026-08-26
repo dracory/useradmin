@@ -21,8 +21,9 @@ type UiConfig struct {
 	GeoResolver GeoResolverInterface
 	Logger      *slog.Logger
 
-	// SessionResolver is required for the impersonate controller.
-	SessionResolver SessionResolverInterface
+	// OnUserImpersonate is required for the impersonate controller.
+	// The host owns the auth mechanism (session+cookie, JWT, etc.).
+	OnUserImpersonate OnUserImpersonateFunc
 
 	// OnUserSearch is an optional callback for custom user search
 	// (e.g. blind index, Elasticsearch). When nil, useradmin falls

@@ -13,7 +13,7 @@ type UiInterface interface {
 	UserStore() userstore.StoreInterface
 	GeoResolver() GeoResolverInterface
 	Logger() *slog.Logger
-	SessionResolver() SessionResolverInterface
+	OnUserImpersonate() OnUserImpersonateFunc
 	OnUserSearch() OnUserSearchFunc
 	OnUserUpdate() OnUserUpdateFunc
 	VaultTokenizer() VaultTokenizer
