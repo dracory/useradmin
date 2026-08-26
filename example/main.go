@@ -180,10 +180,10 @@ func (r *exampleGeoResolver) Timezones(ctx context.Context, countryCode ...strin
 // exampleOnUserImpersonate is an OnUserImpersonateFunc that sets a
 // simple session cookie. Demonstrates that no session package is
 // required to satisfy the callback.
-func exampleOnUserImpersonate(w http.ResponseWriter, r *http.Request, event useradmin.UserImpersonateEvent) error {
+func exampleOnUserImpersonate(w http.ResponseWriter, r *http.Request, userID string) error {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "example_session",
-		Value:    event.UserID,
+		Value:    userID,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   r.TLS != nil,

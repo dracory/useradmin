@@ -54,36 +54,17 @@ type UserSearchEvent struct {
 // for substring; SetEmail for exact match).
 type OnUserSearchFunc func(ctx context.Context, event UserSearchEvent) ([]string, error)
 
-// UserImpersonateEvent is passed to OnUserImpersonate callbacks when
-// an admin impersonates a user.
-type UserImpersonateEvent struct {
-	// UserID is the ID of the user being impersonated.
-	UserID string
-}
-
 // OnUserImpersonateFunc is an optional callback invoked when an admin
 // impersonates a user. The host owns the auth mechanism — it can
 // create a session record and set a cookie, issue a JWT, or anything
 // else. When nil, impersonation is disabled.
-type OnUserImpersonateFunc func(w http.ResponseWriter, r *http.Request, event UserImpersonateEvent) error
-
-// UserUpdateEvent is passed to OnUserUpdate callbacks after a user is
-// updated. It carries the information the host may need to react —
-// e.g. enqueuing a blind index rebuild when the email changed.
-type UserUpdateEvent struct {
-	// UserID is the ID of the updated user.
-	UserID string
-	// OriginalEmail is the user's email before the update.
-	OriginalEmail string
-	// NewEmail is the user's email after the update.
-	NewEmail string
-}
+type OnUserImpersonateFunc func(w http.ResponseWriter, r *http.Request, userID string) error
 
 // OnUserUpdateFunc is an optional callback invoked after a user is
-// updated. The host can use it to trigger side effects (blind index
-// rebuild, audit log, notifications, etc.) without useradmin dictating
-// how. When nil, the callback is skipped.
-type OnUserUpdateFunc func(ctx context.Context, event UserUpdateEvent)
+// updated. The host can load the user by ID and react to whatever
+// changed (blind index rebuild, audit log, notifications, etc.).
+// When nil, the callback is skipped.
+type OnUserUpdateFunc func(ctx context.Context, userID string)
 
 // UserPiiSealFunc transforms a user from display representation to
 // storage representation (e.g. tokenize, encrypt, mask PII fields).

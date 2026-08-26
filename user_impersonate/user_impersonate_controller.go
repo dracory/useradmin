@@ -79,9 +79,7 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = u.OnUserImpersonate()(w, r, shared.UserImpersonateEvent{
-		UserID: userID,
-	})
+	err = u.OnUserImpersonate()(w, r, userID)
 
 	if err != nil {
 		shared.FlashError(u.FlashRedirect(), w, r, err.Error(), usersURL, 15)

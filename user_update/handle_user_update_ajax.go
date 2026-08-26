@@ -8,7 +8,6 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/dracory/api"
-	"github.com/dracory/useradmin/shared"
 	"github.com/dracory/userstore"
 )
 
@@ -94,21 +93,17 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Unseal PII to get the original email for change detection.
-	originalEmail := user.GetEmail()
+	// Unseal PII for display (e.g. detokenize, decrypt fields).
 	if u.UserPiiUnseal() != nil {
 		unsealed, err := u.UserPiiUnseal()(r.Context(), user)
 		if err != nil {
 			if u.Logger() != nil {
 				u.Logger().Error("userUpdateController.handleUserUpdateAjax UserPiiUnseal", slog.String("error", err.Error()))
 			}
-			// On unseal failure, skip email-change detection rather
-			// than enqueuing a spurious blind index rebuild.
-			originalEmail = strings.TrimSpace(payload.Email)
-		} else {
-			user = unsealed
-			originalEmail = user.GetEmail()
+			api.Respond(w, r, api.Error("System error. Saving user failed"))
+			return
 		}
+		user = unsealed
 	}
 
 	user.SetMemo(strings.TrimSpace(payload.Memo))
@@ -143,19 +138,10 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// When vault tokenization is enabled and the email changed, enqueue
-	// a blind index rebuild task so search stays consistent.
 	// After a successful update, emit an event so the host can react
-	// (e.g. enqueue a blind index rebuild when the email changed).
+	// (e.g. enqueue a blind index rebuild, audit log, notifications).
 	if u.OnUserUpdate() != nil {
-		newEmail := strings.TrimSpace(payload.Email)
-		if originalEmail != newEmail {
-			u.OnUserUpdate()(r.Context(), shared.UserUpdateEvent{
-				UserID:        user.GetID(),
-				OriginalEmail: originalEmail,
-				NewEmail:      newEmail,
-			})
-		}
+		u.OnUserUpdate()(r.Context(), user.GetID())
 	}
 
 	api.Respond(w, r, api.Success("User saved successfully"))

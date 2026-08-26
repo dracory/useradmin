@@ -120,9 +120,7 @@ type (
 	Timezone              = shared.Timezone
 	UserSearchEvent       = shared.UserSearchEvent
 	OnUserSearchFunc      = shared.OnUserSearchFunc
-	UserImpersonateEvent  = shared.UserImpersonateEvent
 	OnUserImpersonateFunc = shared.OnUserImpersonateFunc
-	UserUpdateEvent       = shared.UserUpdateEvent
 	OnUserUpdateFunc      = shared.OnUserUpdateFunc
 	UserPiiSealFunc       = shared.UserPiiSealFunc
 	UserPiiUnsealFunc     = shared.UserPiiUnsealFunc
