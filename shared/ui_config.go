@@ -15,8 +15,8 @@ import (
 // hidden and the impersonate route is not registered. OnUserSearch is
 // optional — when nil, useradmin falls back to userstore query-based
 // search. OnUserUpdate is optional — when nil, the callback is skipped.
-// VaultTokenizer is optional — when nil, user fields are treated as
-// plain text.
+// UserPiiSeal/UserPiiUnseal/UsersPiiUnseal are optional — when nil,
+// user fields are treated as plain text.
 //
 // Authentication and authorization are the host's responsibility —
 // gate the routes with middleware before they reach useradmin.
@@ -40,15 +40,21 @@ type UiConfig struct {
 	// callback is skipped.
 	OnUserUpdate OnUserUpdateFunc
 
-	// OnUserDecode transforms a user from storage representation to
-	// display representation (e.g. decrypt fields). Optional — when
-	// nil, the user is used as-is (plain text).
-	OnUserDecode OnUserDecodeFunc
+	// UserPiiSeal transforms a user from display representation to
+	// storage representation (e.g. tokenize, encrypt PII). Optional —
+	// when nil, the user is stored as-is (plain text).
+	UserPiiSeal UserPiiSealFunc
 
-	// OnUserEncode transforms a user from display representation to
-	// storage representation (e.g. encrypt fields). Optional — when
-	// nil, the user is stored as-is (plain text).
-	OnUserEncode OnUserEncodeFunc
+	// UserPiiUnseal transforms a user from storage representation to
+	// display representation (e.g. detokenize, decrypt PII). Optional —
+	// when nil, the user is used as-is (plain text).
+	UserPiiUnseal UserPiiUnsealFunc
+
+	// UsersPiiUnseal is the batch version of UserPiiUnseal. It allows
+	// the host to unseal all users in a single call for efficiency.
+	// Optional — when nil, useradmin falls back to UserPiiUnseal per
+	// user (or plain text when that is also nil).
+	UsersPiiUnseal UsersPiiUnsealFunc
 
 	// FlashRedirect redirects with a flash message. Optional — when
 	// nil, plain http.Redirect is used.

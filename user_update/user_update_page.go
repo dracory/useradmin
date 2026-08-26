@@ -49,15 +49,15 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		return shared.FlashError(u.FlashRedirect(), w, r, "User not found", userManagerURL, 10)
 	}
 
-	// Decode for display (e.g. decrypt tokenized fields).
-	if u.OnUserDecode() != nil {
-		decoded, err := u.OnUserDecode()(r.Context(), user)
+	// Unseal PII for display (e.g. detokenize, decrypt fields).
+	if u.UserPiiUnseal() != nil {
+		unsealed, err := u.UserPiiUnseal()(r.Context(), user)
 		if err != nil {
 			if u.Logger() != nil {
 				u.Logger().Error("At userUpdateController > renderPage", slog.String("error", err.Error()))
 			}
 		} else {
-			user = decoded
+			user = unsealed
 		}
 	}
 

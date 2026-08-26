@@ -16,8 +16,9 @@ type UiInterface interface {
 	OnUserImpersonate() OnUserImpersonateFunc
 	OnUserSearch() OnUserSearchFunc
 	OnUserUpdate() OnUserUpdateFunc
-	OnUserDecode() OnUserDecodeFunc
-	OnUserEncode() OnUserEncodeFunc
+	UserPiiSeal() UserPiiSealFunc
+	UserPiiUnseal() UserPiiUnsealFunc
+	UsersPiiUnseal() UsersPiiUnsealFunc
 	FlashRedirect() FlashRedirectFunc
 
 	Layout(w http.ResponseWriter, r *http.Request, webpageTitle, webpageHtml string, options struct {

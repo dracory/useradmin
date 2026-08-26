@@ -26,7 +26,7 @@ import (
 //
 // UserStore, GeoResolver, and Logger are required. SessionStore is
 // required for the impersonate controller. Blind index stores,
-// OnUserDecode/OnUserEncode are optional — when nil, user fields are
+// UserPiiSeal/UserPiiUnseal/UsersPiiUnseal are optional — when nil,
 // corresponding features degrade gracefully (filtered search disabled,
 // email-change rebuild skipped, user fields treated as plain text).
 //
@@ -62,15 +62,21 @@ type AdminOptions struct {
 	// callback is skipped.
 	OnUserUpdate shared.OnUserUpdateFunc
 
-	// OnUserDecode transforms a user from storage representation to
-	// display representation (e.g. decrypt fields). Optional — when
-	// nil, the user is used as-is (plain text).
-	OnUserDecode shared.OnUserDecodeFunc
+	// UserPiiSeal transforms a user from display representation to
+	// storage representation (e.g. tokenize, encrypt PII). Optional —
+	// when nil, the user is stored as-is (plain text).
+	UserPiiSeal shared.UserPiiSealFunc
 
-	// OnUserEncode transforms a user from display representation to
-	// storage representation (e.g. encrypt fields). Optional — when
-	// nil, the user is stored as-is (plain text).
-	OnUserEncode shared.OnUserEncodeFunc
+	// UserPiiUnseal transforms a user from storage representation to
+	// display representation (e.g. detokenize, decrypt PII). Optional —
+	// when nil, the user is used as-is (plain text).
+	UserPiiUnseal shared.UserPiiUnsealFunc
+
+	// UsersPiiUnseal is the batch version of UserPiiUnseal. It allows
+	// the host to unseal all users in a single call for efficiency.
+	// Optional — when nil, useradmin falls back to UserPiiUnseal per
+	// user (or plain text when that is also nil).
+	UsersPiiUnseal shared.UsersPiiUnsealFunc
 
 	// FlashRedirect redirects with a flash message. Optional — when
 	// nil, plain http.Redirect is used.
@@ -118,8 +124,9 @@ type (
 	OnUserImpersonateFunc = shared.OnUserImpersonateFunc
 	UserUpdateEvent       = shared.UserUpdateEvent
 	OnUserUpdateFunc      = shared.OnUserUpdateFunc
-	OnUserDecodeFunc      = shared.OnUserDecodeFunc
-	OnUserEncodeFunc      = shared.OnUserEncodeFunc
+	UserPiiSealFunc       = shared.UserPiiSealFunc
+	UserPiiUnsealFunc     = shared.UserPiiUnsealFunc
+	UsersPiiUnsealFunc    = shared.UsersPiiUnsealFunc
 	FlashRedirectFunc     = shared.FlashRedirectFunc
 )
 
@@ -131,8 +138,9 @@ type admin struct {
 	onUserImpersonate shared.OnUserImpersonateFunc
 	onUserSearch      shared.OnUserSearchFunc
 	onUserUpdate      shared.OnUserUpdateFunc
-	onUserDecode      shared.OnUserDecodeFunc
-	onUserEncode      shared.OnUserEncodeFunc
+	userPiiSeal       shared.UserPiiSealFunc
+	userPiiUnseal     shared.UserPiiUnsealFunc
+	usersPiiUnseal    shared.UsersPiiUnsealFunc
 	flashRedirect     shared.FlashRedirectFunc
 	funcLayout        func(w http.ResponseWriter, r *http.Request, title string, body string, options struct {
 		Styles     []string
@@ -184,8 +192,9 @@ func New(opts AdminOptions) (AdminInterface, error) {
 		onUserImpersonate: opts.OnUserImpersonate,
 		onUserSearch:      opts.OnUserSearch,
 		onUserUpdate:      opts.OnUserUpdate,
-		onUserDecode:      opts.OnUserDecode,
-		onUserEncode:      opts.OnUserEncode,
+		userPiiSeal:       opts.UserPiiSeal,
+		userPiiUnseal:     opts.UserPiiUnseal,
+		usersPiiUnseal:    opts.UsersPiiUnseal,
 		flashRedirect:     opts.FlashRedirect,
 		funcLayout:        opts.FuncLayout,
 		adminHomeURL:      opts.AdminHomeURL,
@@ -236,8 +245,9 @@ func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Req
 		OnUserImpersonate: a.onUserImpersonate,
 		OnUserSearch:      a.onUserSearch,
 		OnUserUpdate:      a.onUserUpdate,
-		OnUserDecode:      a.onUserDecode,
-		OnUserEncode:      a.onUserEncode,
+		UserPiiSeal:       a.userPiiSeal,
+		UserPiiUnseal:     a.userPiiUnseal,
+		UsersPiiUnseal:    a.usersPiiUnseal,
 		FlashRedirect:     a.flashRedirect,
 		Layout:            a.render,
 	}

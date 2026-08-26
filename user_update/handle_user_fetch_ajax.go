@@ -40,18 +40,18 @@ func (u *ui) handleUserFetchAjax(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Decode the user for display (e.g. decrypt tokenized fields).
-	// When OnUserDecode is nil, the user is used as-is (plain text).
-	if u.OnUserDecode() != nil {
-		decoded, err := u.OnUserDecode()(r.Context(), user)
+	// Unseal PII for display (e.g. detokenize, decrypt fields).
+	// When UserPiiUnseal is nil, the user is used as-is (plain text).
+	if u.UserPiiUnseal() != nil {
+		unsealed, err := u.UserPiiUnseal()(r.Context(), user)
 		if err != nil {
 			if u.Logger() != nil {
-				u.Logger().Error("userUpdateController.handleUserFetchAjax OnUserDecode", slog.String("error", err.Error()))
+				u.Logger().Error("userUpdateController.handleUserFetchAjax UserPiiUnseal", slog.String("error", err.Error()))
 			}
-			api.Respond(w, r, api.Error("Failed to decode user"))
+			api.Respond(w, r, api.Error("Failed to unseal user"))
 			return
 		}
-		user = decoded
+		user = unsealed
 	}
 
 	firstName := user.GetFirstName()

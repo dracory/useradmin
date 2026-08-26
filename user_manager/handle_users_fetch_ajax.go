@@ -173,20 +173,32 @@ func (u *ui) handleUsersFetchAjax(w http.ResponseWriter, r *http.Request) string
 		return ""
 	}
 
-	users := make([]map[string]interface{}, 0, len(userList))
-	for _, user := range userList {
-		// Decode for display (e.g. decrypt tokenized fields).
-		if u.OnUserDecode() != nil {
-			decoded, err := u.OnUserDecode()(r.Context(), user)
+	// Unseal PII for display. Prefer the batch callback for
+	// efficiency; fall back to per-user; fall back to plain text.
+	if u.UsersPiiUnseal() != nil {
+		unsealed, err := u.UsersPiiUnseal()(r.Context(), userList)
+		if err != nil {
+			if u.Logger() != nil {
+				u.Logger().Error("userManagerController.handleUsersFetchAjax UsersPiiUnseal", slog.String("error", err.Error()))
+			}
+		} else {
+			userList = unsealed
+		}
+	} else if u.UserPiiUnseal() != nil {
+		for i, user := range userList {
+			unsealed, err := u.UserPiiUnseal()(r.Context(), user)
 			if err != nil {
 				if u.Logger() != nil {
-					u.Logger().Error("userManagerController.handleUsersFetchAjax OnUserDecode", slog.String("error", err.Error()))
+					u.Logger().Error("userManagerController.handleUsersFetchAjax UserPiiUnseal", slog.String("error", err.Error()))
 				}
 			} else {
-				user = decoded
+				userList[i] = unsealed
 			}
 		}
+	}
 
+	users := make([]map[string]interface{}, 0, len(userList))
+	for _, user := range userList {
 		users = append(users, map[string]interface{}{
 			FieldID:        user.GetID(),
 			FieldFirstName: user.GetFirstName(),

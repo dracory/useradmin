@@ -85,15 +85,20 @@ type UserUpdateEvent struct {
 // how. When nil, the callback is skipped.
 type OnUserUpdateFunc func(ctx context.Context, event UserUpdateEvent)
 
-// OnUserDecodeFunc transforms a user from storage representation to
-// display representation (e.g. decrypt/tokenize fields to plaintext).
-// The host owns the transformation mechanism — vault tokenization,
-// field-level encryption, or anything else. When nil, the user is
-// used as-is (plain text).
-type OnUserDecodeFunc func(ctx context.Context, user userstore.UserInterface) (userstore.UserInterface, error)
+// UserPiiSealFunc transforms a user from display representation to
+// storage representation (e.g. tokenize, encrypt, mask PII fields).
+// The host owns the mechanism. When nil, the user is stored as-is
+// (plain text).
+type UserPiiSealFunc func(ctx context.Context, user userstore.UserInterface) (userstore.UserInterface, error)
 
-// OnUserEncodeFunc transforms a user from display representation to
-// storage representation (e.g. encrypt/tokenize plaintext fields).
-// The host owns the transformation mechanism. When nil, the user is
-// stored as-is (plain text).
-type OnUserEncodeFunc func(ctx context.Context, user userstore.UserInterface) (userstore.UserInterface, error)
+// UserPiiUnsealFunc transforms a user from storage representation to
+// display representation (e.g. detokenize, decrypt, reveal PII fields).
+// The host owns the mechanism. When nil, the user is used as-is
+// (plain text).
+type UserPiiUnsealFunc func(ctx context.Context, user userstore.UserInterface) (userstore.UserInterface, error)
+
+// UsersPiiUnsealFunc is the batch version of UserPiiUnsealFunc. It
+// allows the host to unseal all users in a single vault batch call
+// for efficiency. When nil, useradmin falls back to calling
+// UserPiiUnsealFunc per user (or plain text when that is also nil).
+type UsersPiiUnsealFunc func(ctx context.Context, users []userstore.UserInterface) ([]userstore.UserInterface, error)

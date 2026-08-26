@@ -17,8 +17,9 @@ type UiBase struct {
 	OnUserImpersonateField OnUserImpersonateFunc
 	OnUserSearchField      OnUserSearchFunc
 	OnUserUpdateField      OnUserUpdateFunc
-	OnUserDecodeField      OnUserDecodeFunc
-	OnUserEncodeField      OnUserEncodeFunc
+	UserPiiSealField       UserPiiSealFunc
+	UserPiiUnsealField     UserPiiUnsealFunc
+	UsersPiiUnsealField    UsersPiiUnsealFunc
 	FlashRedirectField     FlashRedirectFunc
 	LayoutField            func(w http.ResponseWriter, r *http.Request, webpageTitle, webpageHtml string, options struct {
 		Styles     []string
@@ -34,8 +35,9 @@ func (u UiBase) Logger() *slog.Logger                     { return u.LoggerField
 func (u UiBase) OnUserImpersonate() OnUserImpersonateFunc { return u.OnUserImpersonateField }
 func (u UiBase) OnUserSearch() OnUserSearchFunc           { return u.OnUserSearchField }
 func (u UiBase) OnUserUpdate() OnUserUpdateFunc           { return u.OnUserUpdateField }
-func (u UiBase) OnUserDecode() OnUserDecodeFunc           { return u.OnUserDecodeField }
-func (u UiBase) OnUserEncode() OnUserEncodeFunc           { return u.OnUserEncodeField }
+func (u UiBase) UserPiiSeal() UserPiiSealFunc             { return u.UserPiiSealField }
+func (u UiBase) UserPiiUnseal() UserPiiUnsealFunc         { return u.UserPiiUnsealField }
+func (u UiBase) UsersPiiUnseal() UsersPiiUnsealFunc       { return u.UsersPiiUnsealField }
 func (u UiBase) FlashRedirect() FlashRedirectFunc         { return u.FlashRedirectField }
 
 func (u UiBase) Layout(w http.ResponseWriter, r *http.Request, webpageTitle, webpageHtml string, options struct {
@@ -56,8 +58,9 @@ func NewUiBase(config UiConfig) UiBase {
 		OnUserImpersonateField: config.OnUserImpersonate,
 		OnUserSearchField:      config.OnUserSearch,
 		OnUserUpdateField:      config.OnUserUpdate,
-		OnUserDecodeField:      config.OnUserDecode,
-		OnUserEncodeField:      config.OnUserEncode,
+		UserPiiSealField:       config.UserPiiSeal,
+		UserPiiUnsealField:     config.UserPiiUnseal,
+		UsersPiiUnsealField:    config.UsersPiiUnseal,
 		FlashRedirectField:     config.FlashRedirect,
 		LayoutField:            config.Layout,
 	}

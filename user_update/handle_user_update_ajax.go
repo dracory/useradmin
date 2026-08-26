@@ -94,19 +94,19 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Decode the user to get the original email for change detection.
+	// Unseal PII to get the original email for change detection.
 	originalEmail := user.GetEmail()
-	if u.OnUserDecode() != nil {
-		decoded, err := u.OnUserDecode()(r.Context(), user)
+	if u.UserPiiUnseal() != nil {
+		unsealed, err := u.UserPiiUnseal()(r.Context(), user)
 		if err != nil {
 			if u.Logger() != nil {
-				u.Logger().Error("userUpdateController.handleUserUpdateAjax OnUserDecode", slog.String("error", err.Error()))
+				u.Logger().Error("userUpdateController.handleUserUpdateAjax UserPiiUnseal", slog.String("error", err.Error()))
 			}
-			// On decode failure, skip email-change detection rather
+			// On unseal failure, skip email-change detection rather
 			// than enqueuing a spurious blind index rebuild.
 			originalEmail = strings.TrimSpace(payload.Email)
 		} else {
-			user = decoded
+			user = unsealed
 			originalEmail = user.GetEmail()
 		}
 	}
@@ -122,17 +122,17 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 	user.SetPhone(strings.TrimSpace(payload.Phone))
 	user.SetBusinessName(strings.TrimSpace(payload.BusinessName))
 
-	// Encode the user for storage (e.g. encrypt/tokenize fields).
-	if u.OnUserEncode() != nil {
-		encoded, err := u.OnUserEncode()(r.Context(), user)
+	// Seal PII for storage (e.g. tokenize, encrypt fields).
+	if u.UserPiiSeal() != nil {
+		sealed, err := u.UserPiiSeal()(r.Context(), user)
 		if err != nil {
 			if u.Logger() != nil {
-				u.Logger().Error("Error encoding user", slog.String("error", err.Error()))
+				u.Logger().Error("Error sealing user PII", slog.String("error", err.Error()))
 			}
 			api.Respond(w, r, api.Error("System error. Saving user failed"))
 			return
 		}
-		user = encoded
+		user = sealed
 	}
 
 	if err := u.UserStore().UserUpdate(r.Context(), user); err != nil {
