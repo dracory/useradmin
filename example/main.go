@@ -23,10 +23,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/dracory/neat"
 	"github.com/dracory/useradmin"
 
-	"github.com/dracory/geostore"
 	"github.com/dracory/sessionstore"
 	"github.com/dracory/userstore"
 	_ "modernc.org/sqlite"
@@ -61,19 +59,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	geoStore, err := geostore.NewStore(geostore.NewStoreOptions{
-		DB:                 db,
-		CountryTableName:   "geo_country",
-		StateTableName:     "geo_state",
-		TimezoneTableName:  "geo_timezone",
-		AutomigrateEnabled: true,
-		AutoseedEnabled:    true,
-	})
-	if err != nil {
-		logger.Error("failed to create geostore", "err", err)
-		os.Exit(1)
-	}
-
 	sessionStore, err := sessionstore.NewStore(sessionstore.NewStoreOptions{
 		DB:                 db,
 		SessionTableName:   "session",
@@ -91,7 +76,7 @@ func main() {
 
 	admin, err := useradmin.New(useradmin.AdminOptions{
 		UserStore:    userStore,
-		GeoResolver:  &exampleGeoResolver{geoStore: geoStore},
+		GeoResolver:  &exampleGeoResolver{},
 		Logger:       logger,
 		SessionStore: sessionStore,
 		AdminHomeURL: homeURL,
@@ -165,47 +150,45 @@ func portFromAddr(addr string) string {
 	return addr[i:]
 }
 
-// exampleGeoResolver adapts geostore.StoreInterface to
-// useradmin.GeoResolverInterface for the example server.
-type exampleGeoResolver struct {
-	geoStore geostore.StoreInterface
-}
+// exampleGeoResolver implements useradmin.GeoResolverInterface with
+// a small static list of countries and timezones — no external geo
+// database required. Demonstrates how simple it is to satisfy the
+// interface without importing any geo package.
+type exampleGeoResolver struct{}
 
 // Compile-time assertion that exampleGeoResolver satisfies useradmin.GeoResolverInterface.
 var _ useradmin.GeoResolverInterface = (*exampleGeoResolver)(nil)
 
+var exampleCountries = []useradmin.Country{
+	{IsoCode2: "US", Name: "United States"},
+	{IsoCode2: "GB", Name: "United Kingdom"},
+	{IsoCode2: "DE", Name: "Germany"},
+	{IsoCode2: "FR", Name: "France"},
+	{IsoCode2: "BG", Name: "Bulgaria"},
+}
+
+var exampleTimezones = map[string][]useradmin.Timezone{
+	"US": {
+		{Code: "America/New_York"},
+		{Code: "America/Chicago"},
+		{Code: "America/Denver"},
+		{Code: "America/Los_Angeles"},
+	},
+	"GB": {{Code: "Europe/London"}},
+	"DE": {{Code: "Europe/Berlin"}},
+	"FR": {{Code: "Europe/Paris"}},
+	"BG": {{Code: "Europe/Sofia"}},
+}
+
 func (r *exampleGeoResolver) Countries(ctx context.Context) ([]useradmin.Country, error) {
-	list, err := r.geoStore.CountryList(ctx, geostore.CountryQueryOptions{
-		SortOrder: neat.SortAsc,
-		OrderBy:   geostore.COLUMN_NAME,
-	})
-	if err != nil {
-		return nil, err
-	}
-	out := make([]useradmin.Country, 0, len(list))
-	for _, c := range list {
-		out = append(out, useradmin.Country{IsoCode2: c.IsoCode2(), Name: c.Name()})
-	}
-	return out, nil
+	return exampleCountries, nil
 }
 
 func (r *exampleGeoResolver) Timezones(ctx context.Context, countryCode ...string) ([]useradmin.Timezone, error) {
 	if len(countryCode) == 0 || countryCode[0] == "" {
 		return nil, nil
 	}
-	list, err := r.geoStore.TimezoneList(ctx, geostore.TimezoneQueryOptions{
-		SortOrder:   neat.SortAsc,
-		OrderBy:     geostore.COLUMN_TIMEZONE,
-		CountryCode: countryCode[0],
-	})
-	if err != nil {
-		return nil, err
-	}
-	out := make([]useradmin.Timezone, 0, len(list))
-	for _, tz := range list {
-		out = append(out, useradmin.Timezone{Code: tz.Timezone()})
-	}
-	return out, nil
+	return exampleTimezones[countryCode[0]], nil
 }
 
 const landingHTML = `<!doctype html>

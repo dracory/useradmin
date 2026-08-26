@@ -8,7 +8,6 @@ require (
 	github.com/dracory/auth v0.35.0
 	github.com/dracory/bs v0.16.0
 	github.com/dracory/cdn v1.11.0
-	github.com/dracory/geostore v1.10.0
 	github.com/dracory/hb v1.88.0
 	github.com/dracory/neat v0.39.0
 	github.com/dracory/req v0.1.0
