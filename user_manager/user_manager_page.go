@@ -29,16 +29,26 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	urlUserDelete := shared.JSEscapeString(linksHelper.UserManager(map[string]string{"action": actionDeleteUser}))
 	urlUserCreate := shared.JSEscapeString(linksHelper.UserManager(map[string]string{"action": actionCreateUser}))
 	urlUserUpdate := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"user_id": "USER_ID_PLACEHOLDER"}))
-	urlUserImpersonate := shared.JSEscapeString(linksHelper.UserImpersonate(map[string]string{"user_id": "USER_ID_PLACEHOLDER"}))
+
+	// The impersonate button is controlled by the impersonateEnabled
+	// Vue data property. When OnUserImpersonate is nil, the button is
+	// hidden via v-if and the URL is set to empty.
+	impersonateEnabled := "false"
+	urlUserImpersonate := "''"
+	if u.OnUserImpersonate() != nil {
+		impersonateEnabled = "true"
+		urlUserImpersonate = "'" + shared.JSEscapeString(linksHelper.UserImpersonate(map[string]string{"user_id": "USER_ID_PLACEHOLDER"})) + "'"
+	}
 
 	html := strings.ReplaceAll(usersHTML, "urlUsersLoad", "'"+urlUsersLoad+"'")
 	html = strings.ReplaceAll(html, "urlUserUpdate", "'"+urlUserUpdate+"'")
-	html = strings.ReplaceAll(html, "urlUserImpersonate", "'"+urlUserImpersonate+"'")
+	html = strings.ReplaceAll(html, "urlUserImpersonate", urlUserImpersonate)
 	js := strings.ReplaceAll(usersJS, "urlUsersLoad", "'"+urlUsersLoad+"'")
 	js = strings.ReplaceAll(js, "urlUserDelete", "'"+urlUserDelete+"'")
 	js = strings.ReplaceAll(js, "urlUserCreate", "'"+urlUserCreate+"'")
 	js = strings.ReplaceAll(js, "urlUserUpdate", "'"+urlUserUpdate+"'")
-	js = strings.ReplaceAll(js, "urlUserImpersonate", "'"+urlUserImpersonate+"'")
+	js = strings.ReplaceAll(js, "__urlUserImpersonate__", urlUserImpersonate)
+	js = strings.ReplaceAll(js, "__impersonateEnabled__", impersonateEnabled)
 
 	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
 		{Name: "Home", URL: shared.AdminHomeURL(r)},

@@ -36,7 +36,11 @@ const UsersApp = {
                 first_name: '',
                 last_name: '',
                 email: ''
-            }
+            },
+
+            // Impersonate (set by server)
+            impersonateEnabled: __impersonateEnabled__,
+            urlUserImpersonate: __urlUserImpersonate__
         };
     },
 

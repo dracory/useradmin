@@ -89,6 +89,14 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Guard: if OnUserImpersonate is not configured, do nothing. The
+	// route should not be registered in this case, but this prevents
+	// a nil-pointer if called directly.
+	if u.OnUserImpersonate() == nil {
+		shared.FlashError(u.FlashRedirect(), w, r, "Impersonation is not configured", usersURL, 15)
+		return
+	}
+
 	err = u.OnUserImpersonate()(w, r, shared.UserImpersonateEvent{
 		UserID: userID,
 		Secure: u.SecureCookie(),

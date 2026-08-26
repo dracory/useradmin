@@ -99,9 +99,11 @@
               <a :href="urlUserUpdate.replace('USER_ID_PLACEHOLDER', user.id)" class="btn btn-sm btn-primary me-1" title="Edit">
                 <i class="bi bi-pencil-square"></i>
               </a>
-              <a :href="urlUserImpersonate.replace('USER_ID_PLACEHOLDER', user.id)" class="btn btn-sm btn-warning me-1" title="Impersonate">
-                <i class="bi bi-shuffle"></i>
-              </a>
+              <template v-if="impersonateEnabled">
+                <a :href="urlUserImpersonate.replace('USER_ID_PLACEHOLDER', user.id)" class="btn btn-sm btn-warning me-1" title="Impersonate">
+                  <i class="bi bi-shuffle"></i>
+                </a>
+              </template>
               <button class="btn btn-sm btn-danger" @click="deleteUser(user)" title="Delete">
                 <i class="bi bi-trash"></i>
               </button>

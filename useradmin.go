@@ -259,13 +259,22 @@ func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Req
 		Layout:            a.render,
 	}
 
-	return map[string]func(w http.ResponseWriter, r *http.Request){
-		shared.CONTROLLER_USER_MANAGER:     func(w http.ResponseWriter, r *http.Request) { user_manager.UI(uiConfig).UserManager(w, r) },
-		shared.CONTROLLER_USER_CREATE:      func(w http.ResponseWriter, r *http.Request) { user_create.UI(uiConfig).UserCreate(w, r) },
-		shared.CONTROLLER_USER_DELETE:      func(w http.ResponseWriter, r *http.Request) { user_delete.UI(uiConfig).UserDelete(w, r) },
-		shared.CONTROLLER_USER_UPDATE:      func(w http.ResponseWriter, r *http.Request) { user_update.UI(uiConfig).UserUpdate(w, r) },
-		shared.CONTROLLER_USER_IMPERSONATE: func(w http.ResponseWriter, r *http.Request) { user_impersonate.UI(uiConfig).UserImpersonate(w, r) },
+	routes := map[string]func(w http.ResponseWriter, r *http.Request){
+		shared.CONTROLLER_USER_MANAGER: func(w http.ResponseWriter, r *http.Request) { user_manager.UI(uiConfig).UserManager(w, r) },
+		shared.CONTROLLER_USER_CREATE:  func(w http.ResponseWriter, r *http.Request) { user_create.UI(uiConfig).UserCreate(w, r) },
+		shared.CONTROLLER_USER_DELETE:  func(w http.ResponseWriter, r *http.Request) { user_delete.UI(uiConfig).UserDelete(w, r) },
+		shared.CONTROLLER_USER_UPDATE:  func(w http.ResponseWriter, r *http.Request) { user_update.UI(uiConfig).UserUpdate(w, r) },
 	}
+
+	// Only register the impersonate route when OnUserImpersonate is
+	// configured. When nil, the route is not registered (404).
+	if a.onUserImpersonate != nil {
+		routes[shared.CONTROLLER_USER_IMPERSONATE] = func(w http.ResponseWriter, r *http.Request) {
+			user_impersonate.UI(uiConfig).UserImpersonate(w, r)
+		}
+	}
+
+	return routes
 }
 
 // render wraps content in the layout. If FuncLayout is provided and
