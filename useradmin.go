@@ -56,11 +56,11 @@ type AdminOptions struct {
 	// back to userstore query-based search.
 	OnUserSearch shared.OnUserSearchFunc
 
-	// OnUserUpdate is an optional callback invoked after a user is
+	// OnUserUpdated is an optional callback invoked after a user is
 	// updated. The host can use it to trigger side effects (blind
 	// index rebuild, audit log, notifications, etc.). When nil, the
 	// callback is skipped.
-	OnUserUpdate shared.OnUserUpdateFunc
+	OnUserUpdated shared.OnUserUpdatedFunc
 
 	// UserPiiSeal transforms a user from display representation to
 	// storage representation (e.g. tokenize, encrypt PII). Optional —
@@ -121,7 +121,7 @@ type (
 	UserSearchEvent       = shared.UserSearchEvent
 	OnUserSearchFunc      = shared.OnUserSearchFunc
 	OnUserImpersonateFunc = shared.OnUserImpersonateFunc
-	OnUserUpdateFunc      = shared.OnUserUpdateFunc
+	OnUserUpdatedFunc      = shared.OnUserUpdatedFunc
 	UserPiiSealFunc       = shared.UserPiiSealFunc
 	UserPiiUnsealFunc     = shared.UserPiiUnsealFunc
 	UsersPiiUnsealFunc    = shared.UsersPiiUnsealFunc
@@ -135,7 +135,7 @@ type admin struct {
 	logger            *slog.Logger
 	onUserImpersonate shared.OnUserImpersonateFunc
 	onUserSearch      shared.OnUserSearchFunc
-	onUserUpdate      shared.OnUserUpdateFunc
+	OnUserUpdated      shared.OnUserUpdatedFunc
 	userPiiSeal       shared.UserPiiSealFunc
 	userPiiUnseal     shared.UserPiiUnsealFunc
 	usersPiiUnseal    shared.UsersPiiUnsealFunc
@@ -189,7 +189,7 @@ func New(opts AdminOptions) (AdminInterface, error) {
 		logger:            opts.Logger,
 		onUserImpersonate: opts.OnUserImpersonate,
 		onUserSearch:      opts.OnUserSearch,
-		onUserUpdate:      opts.OnUserUpdate,
+		OnUserUpdated:      opts.OnUserUpdated,
 		userPiiSeal:       opts.UserPiiSeal,
 		userPiiUnseal:     opts.UserPiiUnseal,
 		usersPiiUnseal:    opts.UsersPiiUnseal,
@@ -242,7 +242,7 @@ func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Req
 		Logger:            a.logger,
 		OnUserImpersonate: a.onUserImpersonate,
 		OnUserSearch:      a.onUserSearch,
-		OnUserUpdate:      a.onUserUpdate,
+		OnUserUpdated:      a.OnUserUpdated,
 		UserPiiSeal:       a.userPiiSeal,
 		UserPiiUnseal:     a.userPiiUnseal,
 		UsersPiiUnseal:    a.usersPiiUnseal,

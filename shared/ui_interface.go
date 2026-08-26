@@ -15,7 +15,7 @@ type UiInterface interface {
 	Logger() *slog.Logger
 	OnUserImpersonate() OnUserImpersonateFunc
 	OnUserSearch() OnUserSearchFunc
-	OnUserUpdate() OnUserUpdateFunc
+	OnUserUpdated() OnUserUpdatedFunc
 	UserPiiSeal() UserPiiSealFunc
 	UserPiiUnseal() UserPiiUnsealFunc
 	UsersPiiUnseal() UsersPiiUnsealFunc

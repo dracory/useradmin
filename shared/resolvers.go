@@ -60,11 +60,11 @@ type OnUserSearchFunc func(ctx context.Context, event UserSearchEvent) ([]string
 // else. When nil, impersonation is disabled.
 type OnUserImpersonateFunc func(w http.ResponseWriter, r *http.Request, userID string) error
 
-// OnUserUpdateFunc is an optional callback invoked after a user is
+// OnUserUpdatedFunc is an optional callback invoked after a user is
 // updated. The host can load the user by ID and react to whatever
 // changed (blind index rebuild, audit log, notifications, etc.).
 // When nil, the callback is skipped.
-type OnUserUpdateFunc func(ctx context.Context, userID string)
+type OnUserUpdatedFunc func(ctx context.Context, userID string)
 
 // UserPiiSealFunc transforms a user from display representation to
 // storage representation (e.g. tokenize, encrypt, mask PII fields).

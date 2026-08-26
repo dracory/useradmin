@@ -140,8 +140,8 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 
 	// After a successful update, emit an event so the host can react
 	// (e.g. enqueue a blind index rebuild, audit log, notifications).
-	if u.OnUserUpdate() != nil {
-		u.OnUserUpdate()(r.Context(), user.GetID())
+	if u.OnUserUpdated() != nil {
+		u.OnUserUpdated()(r.Context(), user.GetID())
 	}
 
 	api.Respond(w, r, api.Success("User saved successfully"))

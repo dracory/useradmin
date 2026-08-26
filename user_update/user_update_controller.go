@@ -27,7 +27,7 @@ func UI(config shared.UiConfig) UiInterface {
 const (
 	actionUserFetch    = "user-fetch-ajax"
 	actionGetTimezones = "get-timezones-ajax"
-	actionUserUpdate   = "user-update-ajax"
+	actiOnUserUpdated   = "user-update-ajax"
 )
 
 // UserUpdate handles the user update controller requests
@@ -44,7 +44,7 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 		u.handleUserFetchAjax(w, r)
 	case actionGetTimezones:
 		u.handleTimezonesFetchAjax(w, r)
-	case actionUserUpdate:
+	case actiOnUserUpdated:
 		u.handleUserUpdateAjax(w, r)
 	default:
 		html := u.renderPage(w, r)

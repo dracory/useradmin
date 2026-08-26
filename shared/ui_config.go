@@ -14,7 +14,7 @@ import (
 // OnUserImpersonate is optional — when nil, the impersonate button is
 // hidden and the impersonate route is not registered. OnUserSearch is
 // optional — when nil, useradmin falls back to userstore query-based
-// search. OnUserUpdate is optional — when nil, the callback is skipped.
+// search. OnUserUpdated is optional — when nil, the callback is skipped.
 // UserPiiSeal/UserPiiUnseal/UsersPiiUnseal are optional — when nil,
 // user fields are treated as plain text.
 //
@@ -34,11 +34,11 @@ type UiConfig struct {
 	// back to userstore query-based search.
 	OnUserSearch OnUserSearchFunc
 
-	// OnUserUpdate is an optional callback invoked after a user is
+	// OnUserUpdated is an optional callback invoked after a user is
 	// updated. The host can use it to trigger side effects (blind
 	// index rebuild, audit log, notifications, etc.). When nil, the
 	// callback is skipped.
-	OnUserUpdate OnUserUpdateFunc
+	OnUserUpdated OnUserUpdatedFunc
 
 	// UserPiiSeal transforms a user from display representation to
 	// storage representation (e.g. tokenize, encrypt PII). Optional —

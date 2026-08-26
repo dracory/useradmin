@@ -16,7 +16,7 @@ type UiBase struct {
 	LoggerField            *slog.Logger
 	OnUserImpersonateField OnUserImpersonateFunc
 	OnUserSearchField      OnUserSearchFunc
-	OnUserUpdateField      OnUserUpdateFunc
+	OnUserUpdatedField      OnUserUpdatedFunc
 	UserPiiSealField       UserPiiSealFunc
 	UserPiiUnsealField     UserPiiUnsealFunc
 	UsersPiiUnsealField    UsersPiiUnsealFunc
@@ -34,7 +34,7 @@ func (u UiBase) GeoResolver() GeoResolverInterface        { return u.GeoResolver
 func (u UiBase) Logger() *slog.Logger                     { return u.LoggerField }
 func (u UiBase) OnUserImpersonate() OnUserImpersonateFunc { return u.OnUserImpersonateField }
 func (u UiBase) OnUserSearch() OnUserSearchFunc           { return u.OnUserSearchField }
-func (u UiBase) OnUserUpdate() OnUserUpdateFunc           { return u.OnUserUpdateField }
+func (u UiBase) OnUserUpdated() OnUserUpdatedFunc           { return u.OnUserUpdatedField }
 func (u UiBase) UserPiiSeal() UserPiiSealFunc             { return u.UserPiiSealField }
 func (u UiBase) UserPiiUnseal() UserPiiUnsealFunc         { return u.UserPiiUnsealField }
 func (u UiBase) UsersPiiUnseal() UsersPiiUnsealFunc       { return u.UsersPiiUnsealField }
@@ -57,7 +57,7 @@ func NewUiBase(config UiConfig) UiBase {
 		LoggerField:            config.Logger,
 		OnUserImpersonateField: config.OnUserImpersonate,
 		OnUserSearchField:      config.OnUserSearch,
-		OnUserUpdateField:      config.OnUserUpdate,
+		OnUserUpdatedField:      config.OnUserUpdated,
 		UserPiiSealField:       config.UserPiiSeal,
 		UserPiiUnsealField:     config.UserPiiUnseal,
 		UsersPiiUnsealField:    config.UsersPiiUnseal,
