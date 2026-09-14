@@ -33,14 +33,8 @@ func (u *ui) handleUserCreateAjax(w http.ResponseWriter, r *http.Request) string
 		return ""
 	}
 
-	if strings.TrimSpace(reqBody.FirstName) == "" {
-		api.Respond(w, r, api.Error("First name is required"))
-		return ""
-	}
-	if strings.TrimSpace(reqBody.LastName) == "" {
-		api.Respond(w, r, api.Error("Last name is required"))
-		return ""
-	}
+	// First and last name are optional for admins who often do not
+	// have all user details on hand. Email is the only required field.
 	email := strings.TrimSpace(reqBody.Email)
 	if email == "" {
 		api.Respond(w, r, api.Error("Email is required"))

@@ -315,11 +315,11 @@ const UsersApp = {
          * Creates a new user.
          */
         async createUser() {
-            if (!this.newUser.first_name || !this.newUser.last_name || !this.newUser.email) {
+            if (!this.newUser.email) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Please fill in all fields'
+                    text: 'Please enter an email'
                 });
                 return;
             }

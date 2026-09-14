@@ -166,14 +166,8 @@ func (u *ui) prepareDataAndValidate(r *http.Request) (data userCreateControllerD
 		return data, ""
 	}
 
-	if data.firstName == "" {
-		return data, "user first name is required"
-	}
-
-	if data.lastName == "" {
-		return data, "user last name is required"
-	}
-
+	// First and last name are optional for admins who often do not
+	// have all user details on hand. Email is the only required field.
 	if data.email == "" {
 		return data, "user email is required"
 	}

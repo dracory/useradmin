@@ -64,14 +64,6 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 		api.Respond(w, r, api.Error("Status is required"))
 		return
 	}
-	if strings.TrimSpace(payload.FirstName) == "" {
-		api.Respond(w, r, api.Error("First name is required"))
-		return
-	}
-	if strings.TrimSpace(payload.LastName) == "" {
-		api.Respond(w, r, api.Error("Last name is required"))
-		return
-	}
 	if strings.TrimSpace(payload.Email) == "" {
 		api.Respond(w, r, api.Error("Email is required"))
 		return
@@ -80,14 +72,8 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 		api.Respond(w, r, api.Error("Invalid email address"))
 		return
 	}
-	if payload.Country == "" {
-		api.Respond(w, r, api.Error("Country is required"))
-		return
-	}
-	if payload.Timezone == "" {
-		api.Respond(w, r, api.Error("Timezone is required"))
-		return
-	}
+	// First name, last name, country, and timezone are optional for admins
+	// who often do not have all user details on hand.
 	if payload.Role != "" && payload.Role != userstore.USER_ROLE_USER && payload.Role != userstore.USER_ROLE_ADMINISTRATOR {
 		api.Respond(w, r, api.Error("Invalid role value"))
 		return

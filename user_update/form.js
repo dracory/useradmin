@@ -139,20 +139,6 @@ loadVueIfNeeded((err) => {
                 });
                 return;
             }
-            if (!this.form.first_name.trim()) {
-                Notiflix.Notify.failure('First name is required', {
-                    position: 'right-top',
-                    timeout: 3000,
-                });
-                return;
-            }
-            if (!this.form.last_name.trim()) {
-                Notiflix.Notify.failure('Last name is required', {
-                    position: 'right-top',
-                    timeout: 3000,
-                });
-                return;
-            }
             if (!this.form.email.trim()) {
                 Notiflix.Notify.failure('Email is required', {
                     position: 'right-top',
@@ -168,20 +154,7 @@ loadVueIfNeeded((err) => {
                 });
                 return;
             }
-            if (!this.form.country) {
-                Notiflix.Notify.failure('Country is required', {
-                    position: 'right-top',
-                    timeout: 3000,
-                });
-                return;
-            }
-            if (!this.form.timezone) {
-                Notiflix.Notify.failure('Timezone is required', {
-                    position: 'right-top',
-                    timeout: 3000,
-                });
-                return;
-            }
+            // First name, last name, country, and timezone are optional for admins.
 
             this.saving = true;
             try {
