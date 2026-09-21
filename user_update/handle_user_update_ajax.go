@@ -22,17 +22,19 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload struct {
-		UserID       string `json:"user_id"`
-		Status       string `json:"status"`
-		Role         string `json:"role"`
-		FirstName    string `json:"first_name"`
-		LastName     string `json:"last_name"`
-		Email        string `json:"email"`
-		BusinessName string `json:"business_name"`
-		Phone        string `json:"phone"`
-		Country      string `json:"country"`
-		Timezone     string `json:"timezone"`
-		Memo         string `json:"memo"`
+		UserID       string   `json:"user_id"`
+		Status       string   `json:"status"`
+		Role         string   `json:"role"`
+		FirstName    string   `json:"first_name"`
+		LastName     string   `json:"last_name"`
+		Email        string   `json:"email"`
+		BusinessName string   `json:"business_name"`
+		Phone        string   `json:"phone"`
+		Country      string   `json:"country"`
+		Timezone     string   `json:"timezone"`
+		Memo         string   `json:"memo"`
+		RoleIDs      []string `json:"role_ids"`
+		GroupIDs     []string `json:"group_ids"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		api.Respond(w, r, api.Error("Invalid request body"))
@@ -124,6 +126,13 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !u.syncRoleAssignments(w, r, user.GetID(), payload.RoleIDs) {
+		return
+	}
+	if !u.syncGroupAssignments(w, r, user.GetID(), payload.GroupIDs) {
+		return
+	}
+
 	// After a successful update, emit an event so the host can react
 	// (e.g. enqueue a blind index rebuild, audit log, notifications).
 	if u.OnUserUpdated() != nil {
@@ -131,4 +140,112 @@ func (u *ui) handleUserUpdateAjax(w http.ResponseWriter, r *http.Request) {
 	}
 
 	api.Respond(w, r, api.Success("User saved successfully"))
+}
+
+// syncRoleAssignments reconciles the user's role assignments with the
+// given role IDs: creates missing assignments and soft-deletes removed
+// ones. Returns false if an error response was already sent.
+func (u *ui) syncRoleAssignments(w http.ResponseWriter, r *http.Request, userID string, roleIDs []string) bool {
+	// Roles are an optional userstore feature — when the tables are
+	// not configured, skip syncing entirely.
+	if u.UserStore().GetRoleTableName() == "" || u.UserStore().GetUserRoleTableName() == "" {
+		return true
+	}
+
+	existing, err := u.UserStore().UserRoleList(r.Context(), userstore.NewUserRoleQuery().SetUserID(userID))
+	if err != nil {
+		if u.Logger() != nil {
+			u.Logger().Error("userUpdateController.syncRoleAssignments UserRoleList", slog.String("error", err.Error()))
+		}
+		api.Respond(w, r, api.Error("Failed to load user roles"))
+		return false
+	}
+
+	wanted := map[string]bool{}
+	for _, id := range roleIDs {
+		wanted[id] = true
+	}
+
+	existingByRoleID := map[string]userstore.UserRoleInterface{}
+	for _, userRole := range existing {
+		existingByRoleID[userRole.GetRoleID()] = userRole
+		if !wanted[userRole.GetRoleID()] {
+			if err := u.UserStore().UserRoleSoftDelete(r.Context(), userRole); err != nil {
+				if u.Logger() != nil {
+					u.Logger().Error("userUpdateController.syncRoleAssignments UserRoleSoftDelete", slog.String("error", err.Error()))
+				}
+				api.Respond(w, r, api.Error("Failed to remove role assignment"))
+				return false
+			}
+		}
+	}
+
+	for _, roleID := range roleIDs {
+		if _, ok := existingByRoleID[roleID]; ok {
+			continue
+		}
+		if _, err := u.UserStore().UserRoleFindByUserIDAndRoleIDOrCreate(r.Context(), userID, roleID); err != nil {
+			if u.Logger() != nil {
+				u.Logger().Error("userUpdateController.syncRoleAssignments UserRoleFindByUserIDAndRoleIDOrCreate", slog.String("error", err.Error()))
+			}
+			api.Respond(w, r, api.Error("Failed to assign role"))
+			return false
+		}
+	}
+
+	return true
+}
+
+// syncGroupAssignments reconciles the user's group memberships with the
+// given group IDs: creates missing memberships and soft-deletes removed
+// ones. Returns false if an error response was already sent.
+func (u *ui) syncGroupAssignments(w http.ResponseWriter, r *http.Request, userID string, groupIDs []string) bool {
+	// Groups are an optional userstore feature — when the tables are
+	// not configured, skip syncing entirely.
+	if u.UserStore().GetGroupTableName() == "" || u.UserStore().GetUserGroupTableName() == "" {
+		return true
+	}
+
+	existing, err := u.UserStore().UserGroupList(r.Context(), userstore.NewUserGroupQuery().SetUserID(userID))
+	if err != nil {
+		if u.Logger() != nil {
+			u.Logger().Error("userUpdateController.syncGroupAssignments UserGroupList", slog.String("error", err.Error()))
+		}
+		api.Respond(w, r, api.Error("Failed to load user groups"))
+		return false
+	}
+
+	wanted := map[string]bool{}
+	for _, id := range groupIDs {
+		wanted[id] = true
+	}
+
+	existingByGroupID := map[string]userstore.UserGroupInterface{}
+	for _, userGroup := range existing {
+		existingByGroupID[userGroup.GetGroupID()] = userGroup
+		if !wanted[userGroup.GetGroupID()] {
+			if err := u.UserStore().UserGroupSoftDelete(r.Context(), userGroup); err != nil {
+				if u.Logger() != nil {
+					u.Logger().Error("userUpdateController.syncGroupAssignments UserGroupSoftDelete", slog.String("error", err.Error()))
+				}
+				api.Respond(w, r, api.Error("Failed to remove group membership"))
+				return false
+			}
+		}
+	}
+
+	for _, groupID := range groupIDs {
+		if _, ok := existingByGroupID[groupID]; ok {
+			continue
+		}
+		if _, err := u.UserStore().UserGroupFindByUserIDAndGroupIDOrCreate(r.Context(), userID, groupID); err != nil {
+			if u.Logger() != nil {
+				u.Logger().Error("userUpdateController.syncGroupAssignments UserGroupFindByUserIDAndGroupIDOrCreate", slog.String("error", err.Error()))
+			}
+			api.Respond(w, r, api.Error("Failed to assign group"))
+			return false
+		}
+	}
+
+	return true
 }

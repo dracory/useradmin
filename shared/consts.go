@@ -13,6 +13,14 @@ const (
 	CONTROLLER_USER_DELETE      = "user-delete"
 	CONTROLLER_USER_UPDATE      = "user-update"
 	CONTROLLER_USER_IMPERSONATE = "user-impersonate"
+	CONTROLLER_ROLE_MANAGER     = "role-manager"
+	CONTROLLER_ROLE_VIEW        = "role-view"
+	CONTROLLER_ROLE_UPDATE      = "role-update"
+	CONTROLLER_ROLE_MEMBERS     = "role-members"
+	CONTROLLER_GROUP_MANAGER    = "group-manager"
+	CONTROLLER_GROUP_VIEW       = "group-view"
+	CONTROLLER_GROUP_UPDATE     = "group-update"
+	CONTROLLER_GROUP_MEMBERS    = "group-members"
 )
 
 // CatchAll is the catch-all route suffix

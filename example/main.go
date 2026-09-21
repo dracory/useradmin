@@ -51,6 +51,12 @@ func main() {
 	userStore, err := userstore.NewStore(userstore.NewStoreOptions{
 		DB:                 db,
 		UserTableName:      "user",
+		RolesEnabled:       true,
+		RoleTableName:      "role",
+		UserRoleTableName:  "user_role",
+		GroupsEnabled:      true,
+		GroupTableName:     "group",
+		UserGroupTableName: "user_group",
 		AutomigrateEnabled: true,
 	})
 	if err != nil {

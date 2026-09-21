@@ -3,8 +3,8 @@ package user_manager
 import (
 	"net/http"
 
-	"github.com/dracory/useradmin/shared"
 	"github.com/dracory/req"
+	"github.com/dracory/useradmin/shared"
 )
 
 // UiInterface defines the user manager controller's UI interface

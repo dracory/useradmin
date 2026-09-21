@@ -23,11 +23,15 @@ loadVueIfNeeded((err) => {
                 country: '',
                 timezone: '',
                 memo: '',
-                role: ''
+                role: '',
+                role_ids: [],
+                group_ids: []
             },
             originalEmail: '',
             countries: [],
             timezones: [],
+            roles: [],
+            groups: [],
             fieldStatus: {
                 first_name: true,
                 last_name: true,
@@ -86,6 +90,10 @@ loadVueIfNeeded((err) => {
                     this.originalEmail = d.email || '';
                     this.countries = d.countries || [];
                     this.timezones = d.timezones || [];
+                    this.roles = d.roles || [];
+                    this.groups = d.groups || [];
+                    this.form.role_ids = d.user_role_ids || [];
+                    this.form.group_ids = d.user_group_ids || [];
                     if (d.field_status) {
                         this.fieldStatus = { ...this.fieldStatus, ...d.field_status };
                     }
@@ -169,7 +177,9 @@ loadVueIfNeeded((err) => {
                     country: this.form.country,
                     timezone: this.form.timezone,
                     memo: this.form.memo.trim(),
-                    role: this.form.role.trim()
+                    role: this.form.role.trim(),
+                    role_ids: this.form.role_ids,
+                    group_ids: this.form.group_ids
                 };
 
                 const response = await fetch(urlUpdateUser, {

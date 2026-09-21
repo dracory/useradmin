@@ -55,7 +55,16 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
 	})
 
+	nav := hb.Div().Class("mb-3").
+		Child(hb.Hyperlink().Class("btn btn-outline-primary btn-sm me-2").
+			Child(hb.I().Class("bi bi-shield-lock me-1")).HTML("Roles").
+			Href(linksHelper.RoleManager(nil))).
+		Child(hb.Hyperlink().Class("btn btn-outline-primary btn-sm").
+			Child(hb.I().Class("bi bi-people me-1")).HTML("Groups").
+			Href(linksHelper.GroupManager(nil)))
+
 	content := hb.Div().
+		Child(nav).
 		Child(hb.Raw(html)).
 		Child(hb.Script(js))
 

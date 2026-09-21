@@ -28,11 +28,28 @@
 
             <div class="mb-3">
                 <label class="form-label">Role</label>
+                <div class="form-text text-warning mb-1">Deprecated, will be removed Jan 2028</div>
                 <select v-model="form.role" class="form-select" :disabled="hasUnreadableFields">
                     <option value="">- not selected -</option>
                     <option value="user">User</option>
                     <option value="administrator">Administrator</option>
                 </select>
+            </div>
+
+            <div class="mb-3" v-if="roles.length > 0">
+                <label class="form-label">Roles</label>
+                <div class="form-check" v-for="r in roles" :key="r.id">
+                    <input class="form-check-input" type="checkbox" :id="'role-' + r.id" :value="r.id" v-model="form.role_ids" :disabled="hasUnreadableFields">
+                    <label class="form-check-label" :for="'role-' + r.id">{{ r.name }} <span class="text-muted small">({{ r.handle }})</span></label>
+                </div>
+            </div>
+
+            <div class="mb-3" v-if="groups.length > 0">
+                <label class="form-label">Groups</label>
+                <div class="form-check" v-for="g in groups" :key="g.id">
+                    <input class="form-check-input" type="checkbox" :id="'group-' + g.id" :value="g.id" v-model="form.group_ids" :disabled="hasUnreadableFields">
+                    <label class="form-check-label" :for="'group-' + g.id">{{ g.name }} <span class="text-muted small">({{ g.handle }})</span></label>
+                </div>
             </div>
 
             <div class="mb-3">

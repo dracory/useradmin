@@ -10,6 +10,14 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/dracory/useradmin/group_manager"
+	"github.com/dracory/useradmin/group_members"
+	"github.com/dracory/useradmin/group_update"
+	"github.com/dracory/useradmin/group_view"
+	"github.com/dracory/useradmin/role_manager"
+	"github.com/dracory/useradmin/role_members"
+	"github.com/dracory/useradmin/role_update"
+	"github.com/dracory/useradmin/role_view"
 	"github.com/dracory/useradmin/shared"
 	"github.com/dracory/useradmin/user_create"
 	"github.com/dracory/useradmin/user_delete"
@@ -277,10 +285,18 @@ func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Req
 	}
 
 	routes := map[string]func(w http.ResponseWriter, r *http.Request){
-		shared.CONTROLLER_USER_MANAGER: func(w http.ResponseWriter, r *http.Request) { user_manager.UI(uiConfig).UserManager(w, r) },
-		shared.CONTROLLER_USER_CREATE:  func(w http.ResponseWriter, r *http.Request) { user_create.UI(uiConfig).UserCreate(w, r) },
-		shared.CONTROLLER_USER_DELETE:  func(w http.ResponseWriter, r *http.Request) { user_delete.UI(uiConfig).UserDelete(w, r) },
-		shared.CONTROLLER_USER_UPDATE:  func(w http.ResponseWriter, r *http.Request) { user_update.UI(uiConfig).UserUpdate(w, r) },
+		shared.CONTROLLER_USER_MANAGER:  func(w http.ResponseWriter, r *http.Request) { user_manager.UI(uiConfig).UserManager(w, r) },
+		shared.CONTROLLER_USER_CREATE:   func(w http.ResponseWriter, r *http.Request) { user_create.UI(uiConfig).UserCreate(w, r) },
+		shared.CONTROLLER_USER_DELETE:   func(w http.ResponseWriter, r *http.Request) { user_delete.UI(uiConfig).UserDelete(w, r) },
+		shared.CONTROLLER_USER_UPDATE:   func(w http.ResponseWriter, r *http.Request) { user_update.UI(uiConfig).UserUpdate(w, r) },
+		shared.CONTROLLER_ROLE_MANAGER:  func(w http.ResponseWriter, r *http.Request) { role_manager.UI(uiConfig).RoleManager(w, r) },
+		shared.CONTROLLER_ROLE_VIEW:     func(w http.ResponseWriter, r *http.Request) { role_view.UI(uiConfig).RoleView(w, r) },
+		shared.CONTROLLER_ROLE_UPDATE:   func(w http.ResponseWriter, r *http.Request) { role_update.UI(uiConfig).RoleUpdate(w, r) },
+		shared.CONTROLLER_ROLE_MEMBERS:  func(w http.ResponseWriter, r *http.Request) { role_members.UI(uiConfig).RoleMembers(w, r) },
+		shared.CONTROLLER_GROUP_MANAGER: func(w http.ResponseWriter, r *http.Request) { group_manager.UI(uiConfig).GroupManager(w, r) },
+		shared.CONTROLLER_GROUP_VIEW:    func(w http.ResponseWriter, r *http.Request) { group_view.UI(uiConfig).GroupView(w, r) },
+		shared.CONTROLLER_GROUP_UPDATE:  func(w http.ResponseWriter, r *http.Request) { group_update.UI(uiConfig).GroupUpdate(w, r) },
+		shared.CONTROLLER_GROUP_MEMBERS: func(w http.ResponseWriter, r *http.Request) { group_members.UI(uiConfig).GroupMembers(w, r) },
 	}
 
 	// Only register the impersonate route when OnUserImpersonate is

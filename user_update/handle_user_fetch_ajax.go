@@ -7,6 +7,7 @@ import (
 	"github.com/dracory/api"
 	"github.com/dracory/req"
 	"github.com/dracory/useradmin/shared"
+	"github.com/dracory/userstore"
 )
 
 func (u *ui) handleUserFetchAjax(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +117,82 @@ func (u *ui) handleUserFetchAjax(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	// All available roles and the IDs of the roles assigned to this
+	// user. Roles are an optional userstore feature — when the role
+	// tables are not configured (empty table names), the lists are
+	// returned empty and the checkboxes are hidden in the UI.
+	roles := []map[string]string{}
+	userRoleIDs := []string{}
+	if u.UserStore().GetRoleTableName() != "" && u.UserStore().GetUserRoleTableName() != "" {
+		roleList, err := u.UserStore().RoleList(r.Context(), userstore.NewRoleQuery().
+			SetOrderBy(userstore.COLUMN_NAME).
+			SetSortDirection(userstore.SORT_ORDER_ASC))
+		if err != nil {
+			if u.Logger() != nil {
+				u.Logger().Error("userUpdateController.handleUserFetchAjax RoleList", slog.String("error", err.Error()))
+			}
+			api.Respond(w, r, api.Error("Failed to load roles"))
+			return
+		}
+		for _, rl := range roleList {
+			roles = append(roles, map[string]string{
+				FieldID:     rl.GetID(),
+				FieldName:   rl.GetName(),
+				FieldHandle: rl.GetHandle(),
+			})
+		}
+
+		userRoleList, err := u.UserStore().UserRoles(r.Context(), userID)
+		if err != nil {
+			if u.Logger() != nil {
+				u.Logger().Error("userUpdateController.handleUserFetchAjax UserRoles", slog.String("error", err.Error()))
+			}
+			api.Respond(w, r, api.Error("Failed to load user roles"))
+			return
+		}
+		for _, rl := range userRoleList {
+			userRoleIDs = append(userRoleIDs, rl.GetID())
+		}
+	}
+
+	// All available groups and the IDs of the groups this user belongs
+	// to. Groups are an optional userstore feature — when the group
+	// tables are not configured (empty table names), the lists are
+	// returned empty and the checkboxes are hidden in the UI.
+	groups := []map[string]string{}
+	userGroupIDs := []string{}
+	if u.UserStore().GetGroupTableName() != "" && u.UserStore().GetUserGroupTableName() != "" {
+		groupList, err := u.UserStore().GroupList(r.Context(), userstore.NewGroupQuery().
+			SetOrderBy(userstore.COLUMN_NAME).
+			SetSortDirection(userstore.SORT_ORDER_ASC))
+		if err != nil {
+			if u.Logger() != nil {
+				u.Logger().Error("userUpdateController.handleUserFetchAjax GroupList", slog.String("error", err.Error()))
+			}
+			api.Respond(w, r, api.Error("Failed to load groups"))
+			return
+		}
+		for _, g := range groupList {
+			groups = append(groups, map[string]string{
+				FieldID:     g.GetID(),
+				FieldName:   g.GetName(),
+				FieldHandle: g.GetHandle(),
+			})
+		}
+
+		userGroupList, err := u.UserStore().UserGroups(r.Context(), userID)
+		if err != nil {
+			if u.Logger() != nil {
+				u.Logger().Error("userUpdateController.handleUserFetchAjax UserGroups", slog.String("error", err.Error()))
+			}
+			api.Respond(w, r, api.Error("Failed to load user groups"))
+			return
+		}
+		for _, g := range userGroupList {
+			userGroupIDs = append(userGroupIDs, g.GetID())
+		}
+	}
+
 	api.Respond(w, r, api.SuccessWithData("", map[string]any{
 		FieldStatus:       status,
 		FieldRole:         role,
@@ -130,5 +207,9 @@ func (u *ui) handleUserFetchAjax(w http.ResponseWriter, r *http.Request) {
 		FieldStatusField:  fieldStatus,
 		FieldCountries:    countries,
 		FieldTimezones:    timezones,
+		FieldRoles:        roles,
+		FieldUserRoleIDs:  userRoleIDs,
+		FieldGroups:       groups,
+		FieldUserGroupIDs: userGroupIDs,
 	}))
 }

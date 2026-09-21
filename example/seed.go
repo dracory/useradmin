@@ -57,5 +57,28 @@ func seedUsers(store userstore.StoreInterface, logger *slog.Logger) {
 		logger.Error("seedUsers: failed to create admin user", "error", err)
 	}
 
+	// Seed a few roles and groups so the manager pages have data.
+	for _, r := range []struct{ name, handle string }{
+		{"Editor", "editor"},
+		{"Moderator", "moderator"},
+		{"Support", "support"},
+	} {
+		role := userstore.NewRole().SetName(r.name).SetHandle(r.handle).SetStatus(userstore.ROLE_STATUS_ACTIVE)
+		if err := store.RoleCreate(ctx, role); err != nil {
+			logger.Error("seedUsers: failed to create role", "handle", r.handle, "error", err)
+		}
+	}
+
+	for _, g := range []struct{ name, handle string }{
+		{"Customers", "customers"},
+		{"Partners", "partners"},
+		{"Staff", "staff"},
+	} {
+		group := userstore.NewGroup().SetName(g.name).SetHandle(g.handle).SetStatus(userstore.GROUP_STATUS_ACTIVE)
+		if err := store.GroupCreate(ctx, group); err != nil {
+			logger.Error("seedUsers: failed to create group", "handle", g.handle, "error", err)
+		}
+	}
+
 	logger.Info("seedUsers complete", "users", 41)
 }

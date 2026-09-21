@@ -43,6 +43,12 @@ func newTestEnv(t *testing.T) *testEnv {
 	userStore, err := userstore.NewStore(userstore.NewStoreOptions{
 		DB:                 db,
 		UserTableName:      "user",
+		RolesEnabled:       true,
+		RoleTableName:      "role",
+		UserRoleTableName:  "user_role",
+		GroupsEnabled:      true,
+		GroupTableName:     "group",
+		UserGroupTableName: "user_group",
 		AutomigrateEnabled: true,
 	})
 	if err != nil {
@@ -144,7 +150,7 @@ func TestUserUpdateAcceptsMinimalPayload(t *testing.T) {
 
 	resp := postJSON(t, env, url.Values{
 		"controller": {"user-update"},
-		"action":      {"user-update-ajax"},
+		"action":     {"user-update-ajax"},
 	}, map[string]string{
 		"user_id": target.GetID(),
 		"status":  userstore.USER_STATUS_ACTIVE,
@@ -197,7 +203,7 @@ func TestUserUpdateRejectsMissingEmail(t *testing.T) {
 
 	resp := postJSON(t, env, url.Values{
 		"controller": {"user-update"},
-		"action":      {"user-update-ajax"},
+		"action":     {"user-update-ajax"},
 	}, map[string]string{
 		"user_id": target.GetID(),
 		"status":  userstore.USER_STATUS_ACTIVE,
@@ -231,7 +237,7 @@ func TestUserUpdateRejectsMissingStatus(t *testing.T) {
 
 	resp := postJSON(t, env, url.Values{
 		"controller": {"user-update"},
-		"action":      {"user-update-ajax"},
+		"action":     {"user-update-ajax"},
 	}, map[string]string{
 		"user_id": target.GetID(),
 		"status":  "", // intentionally empty
@@ -257,7 +263,7 @@ func TestUserCreateAcceptsEmailOnly(t *testing.T) {
 
 	resp := postJSON(t, env, url.Values{
 		"controller": {"user-manager"},
-		"action":      {"create-user-ajax"},
+		"action":     {"create-user-ajax"},
 	}, map[string]string{
 		"email": "new-email-only@test.com",
 		// first_name, last_name intentionally omitted
@@ -299,7 +305,7 @@ func TestUserCreateRejectsMissingEmail(t *testing.T) {
 
 	resp := postJSON(t, env, url.Values{
 		"controller": {"user-manager"},
-		"action":      {"create-user-ajax"},
+		"action":     {"create-user-ajax"},
 	}, map[string]string{
 		"email": "", // intentionally empty
 	})

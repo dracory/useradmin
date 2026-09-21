@@ -16,4 +16,10 @@ const (
 	FieldTimezones    = "timezones"
 	FieldIsoCode2     = "iso_code_2"
 	FieldName         = "name"
+	FieldID           = "id"
+	FieldHandle       = "handle"
+	FieldRoles        = "roles"
+	FieldUserRoleIDs  = "user_role_ids"
+	FieldGroups       = "groups"
+	FieldUserGroupIDs = "user_group_ids"
 )
