@@ -72,6 +72,10 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	js = strings.ReplaceAll(js, "urlMemberRemove", "'"+urlMemberRemove+"'")
 	js = strings.ReplaceAll(js, "urlUsersSearch", "'"+urlUsersSearch+"'")
 
+	// Prepend the loadVueIfNeeded guard so the script is self-contained
+	// and does not depend on the layout defining it.
+	js = shared.VueLoaderJS + "\n" + js
+
 	appHTML := hb.Raw(html)
 
 	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{

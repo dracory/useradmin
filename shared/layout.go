@@ -44,9 +44,7 @@ func webpageComplete(title, content string, options struct {
 		cdn.Sweetalert2_11(),
 	})
 	webpage.AddScriptURLs(options.ScriptURLs)
-	// loadVueIfNeeded is a guard so controller JS can safely call
-	// Vue.createApp() even if the layout already loaded Vue (or vice versa).
-	webpage.AddScripts(append([]string{VueLoaderJS}, options.Scripts...))
+	webpage.AddScripts(options.Scripts)
 	webpage.AddStyle(`html,body{height:100%;font-family: Ubuntu, sans-serif;}`)
 	webpage.AddStyle(`body {
 		font-family: "Nunito", sans-serif;

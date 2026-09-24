@@ -80,6 +80,10 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	js = strings.ReplaceAll(js, "urlGetTimezones", "'"+urlGetTimezones+"'")
 	js = strings.ReplaceAll(js, "urlUpdateUser", "'"+urlUpdateUser+"'")
 
+	// Prepend the loadVueIfNeeded guard so the script is self-contained
+	// and does not depend on the layout defining it.
+	js = shared.VueLoaderJS + "\n" + js
+
 	// form.html already contains <div id="app-user-update" class="mt-3">
 	// so we inject it as raw HTML — no wrapper div needed (avoids
 	// duplicate id in the DOM). Vue is loaded by the default layout
