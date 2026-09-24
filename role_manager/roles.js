@@ -160,7 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (err) { console.error('Vue load failed:', err); return; }
         const { createApp } = Vue;
         const el = document.getElementById('roles-app');
-        if (el) {
+        const tpl = document.getElementById('roles-app-template');
+        if (el && tpl) {
+            RolesApp.template = tpl.innerHTML;
             createApp(RolesApp).mount('#roles-app');
         }
     });

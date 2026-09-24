@@ -373,7 +373,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (err) { console.error('Vue load failed:', err); return; }
         const { createApp } = Vue;
         const el = document.getElementById('users-app');
-        if (el) {
+        const tpl = document.getElementById('users-app-template');
+        if (el && tpl) {
+            UsersApp.template = tpl.innerHTML;
             createApp(UsersApp).mount('#users-app');
         }
     });

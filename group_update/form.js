@@ -5,6 +5,7 @@ loadVueIfNeeded((err) => {
     const { createApp } = Vue;
 
     createApp({
+    template: document.getElementById('app-group-update-template').innerHTML,
     data() {
         return {
             loading: true,

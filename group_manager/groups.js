@@ -160,7 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (err) { console.error('Vue load failed:', err); return; }
         const { createApp } = Vue;
         const el = document.getElementById('groups-app');
-        if (el) {
+        const tpl = document.getElementById('groups-app-template');
+        if (el && tpl) {
+            GroupsApp.template = tpl.innerHTML;
             createApp(GroupsApp).mount('#groups-app');
         }
     });
