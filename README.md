@@ -32,6 +32,20 @@ Modeled after [`github.com/dracory/blogadmin`](https://github.com/dracory/blogad
 - **Custom layouts** — bring your own layout via `FuncLayout`
 - **Bootstrap + Vue CDN** — default UI works out of the box
 
+## Screenshots
+
+### User Manager
+![User Manager](assets/screenshots/user_manager.png)
+
+### User Edit / Details
+![User Edit](assets/screenshots/user_update.png)
+
+### Role Manager
+![Role Manager](assets/screenshots/role_manager.png)
+
+### Group Manager
+![Group Manager](assets/screenshots/group_manager.png)
+
 ## Installation
 
 ```bash
