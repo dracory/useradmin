@@ -10,6 +10,20 @@ loadVueIfNeeded((err) => {
         return {
             loading: true,
             saving: false,
+            savingSection: '',
+            passwordSaving: false,
+            passwordCollapsed: false,
+            notesCollapsed: false,
+            locationCollapsed: false,
+            detailsCollapsed: false,
+            statusCollapsed: false,
+            rolesCollapsed: false,
+            showPassword: false,
+            showPasswordConfirm: false,
+            passwordForm: {
+                password: '',
+                password_confirm: ''
+            },
             action: '',
             redirectTo: '',
             userId: '',
@@ -137,96 +151,163 @@ loadVueIfNeeded((err) => {
                 console.error('Error loading timezones:', err);
             }
         },
-        async save(actionType) {
-            this.action = actionType;
-            this.redirectTo = '';
+        async changePassword() {
+            if (this.passwordForm.password.length < 8) {
+                Notiflix.Notify.failure('Password must be at least 8 characters', {
+                    position: 'right-top',
+                    timeout: 3000,
+                });
+                return;
+            }
+            if (this.passwordForm.password !== this.passwordForm.password_confirm) {
+                Notiflix.Notify.failure('Passwords do not match', {
+                    position: 'right-top',
+                    timeout: 3000,
+                });
+                return;
+            }
 
-            if (!this.form.status) {
-                Notiflix.Notify.failure('Status is required', {
-                    position: 'right-top',
-                    timeout: 3000,
-                });
-                return;
-            }
-            if (!this.form.email.trim()) {
-                Notiflix.Notify.failure('Email is required', {
-                    position: 'right-top',
-                    timeout: 3000,
-                });
-                return;
-            }
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(this.form.email.trim())) {
-                Notiflix.Notify.failure('Invalid email address', {
-                    position: 'right-top',
-                    timeout: 3000,
-                });
-                return;
-            }
-            // First name, last name, country, and timezone are optional for admins.
-
-            this.saving = true;
+            this.passwordSaving = true;
             try {
-                const payload = {
-                    user_id: this.userId,
-                    status: this.form.status.trim(),
-                    first_name: this.form.first_name.trim(),
-                    last_name: this.form.last_name.trim(),
-                    email: this.form.email.trim(),
-                    business_name: this.form.business_name.trim(),
-                    phone: this.form.phone.trim(),
-                    country: this.form.country,
-                    timezone: this.form.timezone,
-                    memo: this.form.memo.trim(),
-                    role: this.form.role.trim(),
-                    role_ids: this.form.role_ids,
-                    group_ids: this.form.group_ids
-                };
-
-                const response = await fetch(urlUpdateUser, {
+                const response = await fetch(urlUpdatePassword, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        ...payload,
-                        action: 'user-update-ajax'
+                        action: 'password-update-ajax',
+                        user_id: this.userId,
+                        password: this.passwordForm.password
                     })
                 });
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    if (actionType === 'save') {
-                        this.redirectTo = this.returnUrl;
-                        Notiflix.Notify.success('User saved successfully', {
-                            position: 'right-top',
-                            timeout: 3000,
-                        });
-                        setTimeout(() => {
-                            if (this.redirectTo) {
-                                window.location.href = this.redirectTo;
-                            }
-                        }, 3000);
-                    } else {
-                        Notiflix.Notify.success('User saved successfully', {
-                            position: 'right-top',
-                            timeout: 3000,
-                        });
-                        // Reload user data after successful save
-                        await this.loadUser();
-                    }
+                    this.passwordForm.password = '';
+                    this.passwordForm.password_confirm = '';
+                    this.showPassword = false;
+                    this.showPasswordConfirm = false;
+                    Notiflix.Notify.success('Password changed successfully', {
+                        position: 'right-top',
+                        timeout: 3000,
+                    });
                 } else {
-                    Notiflix.Notify.failure(result.message || 'Failed to save user', {
+                    Notiflix.Notify.failure(result.message || 'Failed to change password', {
                         position: 'right-top',
                         timeout: 3000,
                     });
                 }
             } catch (err) {
-                console.error('Error saving user:', err);
-                Notiflix.Notify.failure('Failed to save user', {
+                console.error('Error changing password:', err);
+                Notiflix.Notify.failure('Failed to change password', {
                     position: 'right-top',
                     timeout: 3000,
                 });
             } finally {
-                this.saving = false;
+                this.passwordSaving = false;
+            }
+        },
+        sectionConfig() {
+            return {
+                status: {
+                    url: urlUpdateStatus,
+                    action: 'status-update-ajax',
+                    validate: () => this.form.status ? '' : 'Status is required',
+                    body: () => ({
+                        status: this.form.status.trim()
+                    })
+                },
+                details: {
+                    url: urlUpdateDetails,
+                    action: 'details-update-ajax',
+                    validate: () => {
+                        if (!this.form.email.trim()) return 'Email is required';
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(this.form.email.trim())) return 'Invalid email address';
+                        return '';
+                    },
+                    body: () => ({
+                        first_name: this.form.first_name.trim(),
+                        last_name: this.form.last_name.trim(),
+                        email: this.form.email.trim(),
+                        business_name: this.form.business_name.trim(),
+                        phone: this.form.phone.trim()
+                    })
+                },
+                roles: {
+                    url: urlUpdateRoles,
+                    action: 'roles-update-ajax',
+                    validate: () => '',
+                    body: () => ({
+                        role: this.form.role.trim(),
+                        role_ids: this.form.role_ids,
+                        group_ids: this.form.group_ids
+                    })
+                },
+                location: {
+                    url: urlUpdateLocation,
+                    action: 'location-update-ajax',
+                    validate: () => '',
+                    body: () => ({
+                        country: this.form.country,
+                        timezone: this.form.timezone
+                    })
+                },
+                notes: {
+                    url: urlUpdateNotes,
+                    action: 'notes-update-ajax',
+                    validate: () => '',
+                    body: () => ({
+                        memo: this.form.memo.trim()
+                    })
+                }
+            };
+        },
+        async postSection(section) {
+            const conf = this.sectionConfig()[section];
+            const validationError = conf.validate();
+            if (validationError) {
+                Notiflix.Notify.failure(validationError, {
+                    position: 'right-top',
+                    timeout: 3000,
+                });
+                return false;
+            }
+            const response = await fetch(conf.url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...conf.body(),
+                    user_id: this.userId,
+                    action: conf.action
+                })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                return true;
+            }
+            Notiflix.Notify.failure(result.message || 'Failed to save', {
+                position: 'right-top',
+                timeout: 3000,
+            });
+            return false;
+        },
+        async saveSection(section) {
+            this.action = section;
+            this.savingSection = section;
+            try {
+                if (await this.postSection(section)) {
+                    Notiflix.Notify.success('Saved successfully', {
+                        position: 'right-top',
+                        timeout: 3000,
+                    });
+                }
+            } catch (err) {
+                console.error('Error saving ' + section + ':', err);
+                Notiflix.Notify.failure('Failed to save', {
+                    position: 'right-top',
+                    timeout: 3000,
+                });
+            } finally {
+                this.savingSection = '';
             }
         }
     }

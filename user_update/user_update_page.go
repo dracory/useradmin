@@ -70,6 +70,12 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	urlGetUser := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionUserFetch, "user_id": userID}))
 	urlGetTimezones := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionGetTimezones}))
 	urlUpdateUser := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionUserUpdate}))
+	urlUpdatePassword := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionPasswordUpdate}))
+	urlUpdateStatus := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionStatusUpdate}))
+	urlUpdateDetails := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionDetailsUpdate}))
+	urlUpdateRoles := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionRolesUpdate}))
+	urlUpdateLocation := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionLocationUpdate}))
+	urlUpdateNotes := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"action": actionNotesUpdate}))
 	escapedUserID := shared.JSEscapeString(userID)
 
 	html := strings.ReplaceAll(formHTML, "USER_ID_PLACEHOLDER", "'"+escapedUserID+"'")
@@ -79,15 +85,22 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	js = strings.ReplaceAll(js, "urlGetUser", "'"+urlGetUser+"'")
 	js = strings.ReplaceAll(js, "urlGetTimezones", "'"+urlGetTimezones+"'")
 	js = strings.ReplaceAll(js, "urlUpdateUser", "'"+urlUpdateUser+"'")
+	js = strings.ReplaceAll(js, "urlUpdatePassword", "'"+urlUpdatePassword+"'")
+	js = strings.ReplaceAll(js, "urlUpdateStatus", "'"+urlUpdateStatus+"'")
+	js = strings.ReplaceAll(js, "urlUpdateDetails", "'"+urlUpdateDetails+"'")
+	js = strings.ReplaceAll(js, "urlUpdateRoles", "'"+urlUpdateRoles+"'")
+	js = strings.ReplaceAll(js, "urlUpdateLocation", "'"+urlUpdateLocation+"'")
+	js = strings.ReplaceAll(js, "urlUpdateNotes", "'"+urlUpdateNotes+"'")
 
 	// Prepend the loadVueIfNeeded guard so the script is self-contained
 	// and does not depend on the layout defining it.
 	js = shared.VueLoaderJS + "\n" + js
 
 	// form.html already contains <div id="app-user-update" class="mt-3">
-	// so we inject it as raw HTML — no wrapper div needed (avoids
-	// duplicate id in the DOM). Vue is loaded by the default layout
-	// (shared.Layout); no need to include it again here.
+	// and renders the User Details and Change Password cards inside the
+	// Vue template, so we inject it as raw HTML — no wrapper needed
+	// (avoids duplicate id in the DOM). Vue is loaded by the default
+	// layout (shared.Layout); no need to include it again here.
 	appHTML := hb.Raw(html)
 
 	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
@@ -106,13 +119,6 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 
 	userTitle := hb.Heading2().Class("mb-3").Text("User: ").Text(displayName)
 
-	card := hb.Div().Class("card").Child(
-		hb.Div().Class("card-header").Style("display:flex;justify-content:space-between;align-items:center;").
-			Child(hb.Heading4().HTML("User Details").Style("margin-bottom:0;display:inline-block;")),
-	).Child(
-		hb.Div().Class("card-body").Child(appHTML),
-	)
-
 	content := hb.Div().
 		Class("container").
 		Class("py-4").
@@ -120,7 +126,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		Child(heading).
 		Child(shared.SectionNav(r)).
 		Child(userTitle).
-		Child(card)
+		Child(appHTML)
 
 	return u.Layout(w, r, "Edit User | Users", content.ToHTML(), struct {
 		Styles     []string

@@ -25,9 +25,15 @@ func UI(config shared.UiConfig) UiInterface {
 }
 
 const (
-	actionUserFetch    = "user-fetch-ajax"
-	actionGetTimezones = "get-timezones-ajax"
-	actionUserUpdate   = "user-update-ajax"
+	actionUserFetch      = "user-fetch-ajax"
+	actionGetTimezones   = "get-timezones-ajax"
+	actionUserUpdate     = "user-update-ajax"
+	actionPasswordUpdate = "password-update-ajax"
+	actionStatusUpdate   = "status-update-ajax"
+	actionDetailsUpdate  = "details-update-ajax"
+	actionRolesUpdate    = "roles-update-ajax"
+	actionLocationUpdate = "location-update-ajax"
+	actionNotesUpdate    = "notes-update-ajax"
 )
 
 // UserUpdate handles the user update controller requests
@@ -46,6 +52,18 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 		u.handleTimezonesFetchAjax(w, r)
 	case actionUserUpdate:
 		u.handleUserUpdateAjax(w, r)
+	case actionPasswordUpdate:
+		u.handlePasswordUpdateAjax(w, r)
+	case actionStatusUpdate:
+		u.handleStatusUpdateAjax(w, r)
+	case actionDetailsUpdate:
+		u.handleDetailsUpdateAjax(w, r)
+	case actionRolesUpdate:
+		u.handleRolesUpdateAjax(w, r)
+	case actionLocationUpdate:
+		u.handleLocationUpdateAjax(w, r)
+	case actionNotesUpdate:
+		u.handleNotesUpdateAjax(w, r)
 	default:
 		html := u.renderPage(w, r)
 		if html != "" {
