@@ -29,6 +29,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	urlUserDelete := shared.JSEscapeString(linksHelper.UserManager(map[string]string{"action": actionDeleteUser}))
 	urlUserCreate := shared.JSEscapeString(linksHelper.UserManager(map[string]string{"action": actionCreateUser}))
 	urlUserUpdate := shared.JSEscapeString(linksHelper.UserUpdate(map[string]string{"user_id": "USER_ID_PLACEHOLDER"}))
+	urlUserView := shared.JSEscapeString(linksHelper.UserView(map[string]string{"user_id": "USER_ID_PLACEHOLDER"}))
 
 	// The impersonate button is controlled by the impersonateEnabled
 	// Vue data property. When OnUserImpersonate is nil, the button is
@@ -42,6 +43,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 
 	html := strings.ReplaceAll(usersHTML, "urlUsersLoad", "'"+urlUsersLoad+"'")
 	html = strings.ReplaceAll(html, "urlUserUpdate", "'"+urlUserUpdate+"'")
+	html = strings.ReplaceAll(html, "urlUserView", "'"+urlUserView+"'")
 	html = strings.ReplaceAll(html, "urlUserImpersonate", urlUserImpersonate)
 	js := strings.ReplaceAll(usersJS, "urlUsersLoad", "'"+urlUsersLoad+"'")
 	js = strings.ReplaceAll(js, "urlUserDelete", "'"+urlUserDelete+"'")

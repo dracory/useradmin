@@ -85,7 +85,7 @@
         <tbody>
           <tr v-for="user in users" :key="user.id">
             <td>
-              <a :href="urlUserUpdate.replace('USER_ID_PLACEHOLDER', user.id)" class="text-decoration-none">
+              <a :href="urlUserView.replace('USER_ID_PLACEHOLDER', user.id)" class="text-decoration-none">
                 {{ user.first_name }} {{ user.last_name }}
               </a>
               <div class="small text-muted">Ref: {{ user.id }}</div>

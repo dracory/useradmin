@@ -34,6 +34,11 @@ func (l *Links) UserManager(params map[string]string) string {
 	return l.url(CONTROLLER_USER_MANAGER, params)
 }
 
+// UserView builds the URL for the user view controller
+func (l *Links) UserView(params map[string]string) string {
+	return l.url(CONTROLLER_USER_VIEW, params)
+}
+
 // UserCreate builds the URL for the user create controller
 func (l *Links) UserCreate(params map[string]string) string {
 	return l.url(CONTROLLER_USER_CREATE, params)

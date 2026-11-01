@@ -9,6 +9,7 @@ const KeyUserHomeURL = "user_home_url"
 // Controller names used in the ?controller= query parameter
 const (
 	CONTROLLER_USER_MANAGER     = "user-manager"
+	CONTROLLER_USER_VIEW        = "user-view"
 	CONTROLLER_USER_CREATE      = "user-create"
 	CONTROLLER_USER_DELETE      = "user-delete"
 	CONTROLLER_USER_UPDATE      = "user-update"

@@ -24,6 +24,7 @@ import (
 	"github.com/dracory/useradmin/user_impersonate"
 	"github.com/dracory/useradmin/user_manager"
 	"github.com/dracory/useradmin/user_update"
+	"github.com/dracory/useradmin/user_view"
 
 	"github.com/dracory/req"
 	"github.com/dracory/userstore"
@@ -286,6 +287,7 @@ func (a *admin) buildRoutes() map[string]func(w http.ResponseWriter, r *http.Req
 
 	routes := map[string]func(w http.ResponseWriter, r *http.Request){
 		shared.CONTROLLER_USER_MANAGER:  func(w http.ResponseWriter, r *http.Request) { user_manager.UI(uiConfig).UserManager(w, r) },
+		shared.CONTROLLER_USER_VIEW:     func(w http.ResponseWriter, r *http.Request) { user_view.UI(uiConfig).UserView(w, r) },
 		shared.CONTROLLER_USER_CREATE:   func(w http.ResponseWriter, r *http.Request) { user_create.UI(uiConfig).UserCreate(w, r) },
 		shared.CONTROLLER_USER_DELETE:   func(w http.ResponseWriter, r *http.Request) { user_delete.UI(uiConfig).UserDelete(w, r) },
 		shared.CONTROLLER_USER_UPDATE:   func(w http.ResponseWriter, r *http.Request) { user_update.UI(uiConfig).UserUpdate(w, r) },

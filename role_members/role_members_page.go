@@ -81,7 +81,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
 		{Name: "Home", URL: shared.AdminHomeURL(r)},
 		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
-		{Name: "Roles", URL: roleManagerURL},
+		{Name: "Role Manager", URL: roleManagerURL},
 		{Name: displayName, URL: roleViewURL},
 		{Name: "Members", URL: linksHelper.RoleMembers(map[string]string{FieldRoleID: roleID})},
 	})

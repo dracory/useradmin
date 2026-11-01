@@ -48,7 +48,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
 		{Name: "Home", URL: shared.AdminHomeURL(r)},
 		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
-		{Name: "Groups", URL: groupManagerURL},
+		{Name: "Group Manager", URL: groupManagerURL},
 		{Name: displayName, URL: linksHelper.GroupView(map[string]string{FieldGroupID: groupID})},
 	})
 
