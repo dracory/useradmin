@@ -85,7 +85,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		HTML("Back").
 		Href(roleManagerURL)
 
-	heading := shared.PageHeader("Edit Role", buttonCancel)
+	heading := shared.PageHeader("Users. Edit Role", buttonCancel)
 
 	roleTitle := hb.Heading2().Class("mb-3").Text("Role: ").Text(displayName)
 

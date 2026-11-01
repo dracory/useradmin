@@ -102,7 +102,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		HTML("Back").
 		Href(userManagerURL)
 
-	heading := shared.PageHeader("Edit User", buttonCancel)
+	heading := shared.PageHeader("Users. Edit User", buttonCancel)
 
 	userTitle := hb.Heading2().Class("mb-3").Text("User: ").Text(displayName)
 

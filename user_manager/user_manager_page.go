@@ -60,7 +60,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	})
 
 	header := hb.Div().Class("d-flex justify-content-between align-items-center mb-3").
-		Child(hb.H2().Text("User Manager").Class("mb-0")).
+		Child(hb.H2().Text("Users. User Manager").Class("mb-0")).
 		Child(hb.Div().Class("d-flex gap-2 align-items-center").
 			Child(hb.Hyperlink().Class("btn btn-outline-primary btn-sm").
 				Child(hb.I().Class("bi bi-shield-lock me-1")).HTML("Roles").

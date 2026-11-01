@@ -60,7 +60,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		Class("container").
 		Class("py-4").
 		Child(breadcrumbs).
-		Child(shared.PageHeader("Roles")).
+		Child(shared.PageHeader("Users. Roles")).
 		Child(content)
 
 	return u.Layout(w, r, "Roles | User Manager", page.ToHTML(), struct {

@@ -85,7 +85,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		HTML("Back").
 		Href(groupManagerURL)
 
-	heading := shared.PageHeader("Edit Group", buttonCancel)
+	heading := shared.PageHeader("Users. Edit Group", buttonCancel)
 
 	groupTitle := hb.Heading2().Class("mb-3").Text("Group: ").Text(displayName)
 
