@@ -24,7 +24,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
 		{Name: "Home", URL: shared.AdminHomeURL(r)},
 		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
-		{Name: "Roles", URL: ""},
+		{Name: "Role Manager", URL: ""},
 	})
 
 	pageShell := func(children ...hb.TagInterface) string {
@@ -33,7 +33,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 			Class("container").
 			Class("py-4").
 			Child(breadcrumbs).
-			Child(shared.PageHeader("Users. Roles")).
+			Child(shared.PageHeader("Users. Role Manager")).
 			Child(shared.SectionNav(r, u.UserStore())).
 			Child(content)
 		return u.Layout(w, r, "Roles | User Manager", page.ToHTML(), struct {
