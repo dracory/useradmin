@@ -4,7 +4,7 @@ import "github.com/dracory/hb"
 
 // Breadcrumbs renders a breadcrumb navigation from the given items
 func Breadcrumbs(breadcrumbs []Breadcrumb) hb.TagInterface {
-	ol := hb.OL().Attr("class", "breadcrumb")
+	ol := hb.OL().Attr("class", "breadcrumb").Style("border:none;")
 
 	for _, breadcrumb := range breadcrumbs {
 		link := hb.Hyperlink().
@@ -19,7 +19,6 @@ func Breadcrumbs(breadcrumbs []Breadcrumb) hb.TagInterface {
 	}
 
 	nav := hb.Nav().
-		Class("d-inline-block").
 		Attr("aria-label", "breadcrumb").
 		Child(ol)
 

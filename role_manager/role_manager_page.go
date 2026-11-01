@@ -49,7 +49,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
 		{Name: "Home", URL: shared.AdminHomeURL(r)},
 		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
-		{Name: "Roles", URL: linksHelper.RoleManager(nil)},
+		{Name: "Roles", URL: ""},
 	})
 
 	content := hb.Div().
@@ -60,7 +60,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		Class("container").
 		Class("py-4").
 		Child(breadcrumbs).
-		Child(hb.Heading1().HTML("Roles")).
+		Child(shared.PageHeader("Roles")).
 		Child(content)
 
 	return u.Layout(w, r, "Roles | User Manager", page.ToHTML(), struct {

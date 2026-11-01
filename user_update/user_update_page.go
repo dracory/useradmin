@@ -93,16 +93,16 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
 		{Name: "Home", URL: shared.AdminHomeURL(r)},
 		{Name: "User Manager", URL: userManagerURL},
-		{Name: "Edit User", URL: linksHelper.UserUpdate(map[string]string{"user_id": userID})},
+		{Name: "Edit User", URL: ""},
 	})
 
 	buttonCancel := hb.Hyperlink().
-		Class("btn btn-secondary ms-2 float-end").
-		Child(hb.I().Class("bi bi-chevron-left").Style("margin-top:-4px;margin-right:8px;font-size:16px;")).
+		Class("btn btn-outline-secondary btn-sm").
+		Child(hb.I().Class("bi bi-chevron-left me-1")).
 		HTML("Back").
 		Href(userManagerURL)
 
-	heading := hb.Heading1().HTML("Edit User").Child(buttonCancel)
+	heading := shared.PageHeader("Edit User", buttonCancel)
 
 	userTitle := hb.Heading2().Class("mb-3").Text("User: ").Text(displayName)
 

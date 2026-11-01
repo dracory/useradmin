@@ -76,16 +76,16 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		{Name: "Home", URL: shared.AdminHomeURL(r)},
 		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
 		{Name: "Groups", URL: groupManagerURL},
-		{Name: "Edit Group", URL: linksHelper.GroupUpdate(map[string]string{FieldGroupID: groupID})},
+		{Name: "Edit Group", URL: ""},
 	})
 
 	buttonCancel := hb.Hyperlink().
-		Class("btn btn-secondary ms-2 float-end").
-		Child(hb.I().Class("bi bi-chevron-left").Style("margin-top:-4px;margin-right:8px;font-size:16px;")).
+		Class("btn btn-outline-secondary btn-sm").
+		Child(hb.I().Class("bi bi-chevron-left me-1")).
 		HTML("Back").
 		Href(groupManagerURL)
 
-	heading := hb.Heading1().HTML("Edit Group").Child(buttonCancel)
+	heading := shared.PageHeader("Edit Group", buttonCancel)
 
 	groupTitle := hb.Heading2().Class("mb-3").Text("Group: ").Text(displayName)
 

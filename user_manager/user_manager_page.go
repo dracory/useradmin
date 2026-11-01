@@ -56,7 +56,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 
 	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
 		{Name: "Home", URL: shared.AdminHomeURL(r)},
-		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
+		{Name: "User Manager", URL: ""},
 	})
 
 	header := hb.Div().Class("d-flex justify-content-between align-items-center mb-3").
