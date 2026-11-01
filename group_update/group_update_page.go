@@ -56,7 +56,9 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 
 	returnURL := shared.JSEscapeString(groupManagerURL)
 	urlGetGroup := shared.JSEscapeString(linksHelper.GroupUpdate(map[string]string{"action": actionGroupFetch, FieldGroupID: groupID}))
-	urlUpdateGroup := shared.JSEscapeString(linksHelper.GroupUpdate(map[string]string{"action": actionGroupUpdate}))
+	urlUpdateStatus := shared.JSEscapeString(linksHelper.GroupUpdate(map[string]string{"action": actionStatusUpdate}))
+	urlUpdateDetails := shared.JSEscapeString(linksHelper.GroupUpdate(map[string]string{"action": actionDetailsUpdate}))
+	urlUpdateNotes := shared.JSEscapeString(linksHelper.GroupUpdate(map[string]string{"action": actionNotesUpdate}))
 	escapedGroupID := shared.JSEscapeString(groupID)
 
 	html := strings.ReplaceAll(formHTML, "GROUP_ID_PLACEHOLDER", "'"+escapedGroupID+"'")
@@ -64,7 +66,9 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	js := strings.ReplaceAll(formJS, "GROUP_ID_PLACEHOLDER", "'"+escapedGroupID+"'")
 	js = strings.ReplaceAll(js, "RETURN_URL_PLACEHOLDER", "'"+returnURL+"'")
 	js = strings.ReplaceAll(js, "urlGetGroup", "'"+urlGetGroup+"'")
-	js = strings.ReplaceAll(js, "urlUpdateGroup", "'"+urlUpdateGroup+"'")
+	js = strings.ReplaceAll(js, "urlUpdateStatus", "'"+urlUpdateStatus+"'")
+	js = strings.ReplaceAll(js, "urlUpdateDetails", "'"+urlUpdateDetails+"'")
+	js = strings.ReplaceAll(js, "urlUpdateNotes", "'"+urlUpdateNotes+"'")
 
 	// Prepend the loadVueIfNeeded guard so the script is self-contained
 	// and does not depend on the layout defining it.
@@ -89,13 +93,6 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 
 	groupTitle := hb.Heading2().Class("mb-3").Text("Group: ").Text(displayName)
 
-	card := hb.Div().Class("card").Child(
-		hb.Div().Class("card-header").Style("display:flex;justify-content:space-between;align-items:center;").
-			Child(hb.Heading4().HTML("Group Details").Style("margin-bottom:0;display:inline-block;")),
-	).Child(
-		hb.Div().Class("card-body").Child(appHTML),
-	)
-
 	content := hb.Div().
 		Class("container").
 		Class("py-4").
@@ -103,7 +100,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		Child(heading).
 		Child(shared.SectionNav(r)).
 		Child(groupTitle).
-		Child(card)
+		Child(appHTML)
 
 	return u.Layout(w, r, "Edit Group | Groups", content.ToHTML(), struct {
 		Styles     []string

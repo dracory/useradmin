@@ -25,8 +25,10 @@ func UI(config shared.UiConfig) UiInterface {
 }
 
 const (
-	actionGroupFetch  = "group-fetch-ajax"
-	actionGroupUpdate = "group-update-ajax"
+	actionGroupFetch    = "group-fetch-ajax"
+	actionStatusUpdate  = "status-update-ajax"
+	actionDetailsUpdate = "details-update-ajax"
+	actionNotesUpdate   = "notes-update-ajax"
 )
 
 // groupsEnabled reports whether the user store has group tables
@@ -49,8 +51,12 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 	switch action {
 	case actionGroupFetch:
 		u.handleGroupFetchAjax(w, r)
-	case actionGroupUpdate:
-		u.handleGroupUpdateAjax(w, r)
+	case actionStatusUpdate:
+		u.handleStatusUpdateAjax(w, r)
+	case actionDetailsUpdate:
+		u.handleDetailsUpdateAjax(w, r)
+	case actionNotesUpdate:
+		u.handleNotesUpdateAjax(w, r)
 	default:
 		html := u.renderPage(w, r)
 		if html != "" {

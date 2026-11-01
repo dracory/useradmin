@@ -5,12 +5,14 @@ import (
 	"strings"
 
 	"github.com/dracory/hb"
+	"github.com/dracory/userstore"
 )
 
 // SectionNav renders the useradmin section navigation as tabs, matching the
 // nav-tabs pattern used across the admin packages. The active tab is derived
-// from the ?controller= query parameter.
-func SectionNav(r *http.Request) hb.TagInterface {
+// from the ?controller= query parameter. The Roles and Groups tabs are only
+// shown when the user store has the corresponding tables enabled.
+func SectionNav(r *http.Request, store userstore.StoreInterface) hb.TagInterface {
 	linksHelper := NewLinksFromRequest(r)
 
 	active := "users"
@@ -34,9 +36,15 @@ func SectionNav(r *http.Request) hb.TagInterface {
 			hb.Hyperlink().HTML(label).Href(url).Class(class))
 	}
 
-	return hb.UL().Class("nav nav-tabs mb-3").Children([]hb.TagInterface{
+	tabs := []hb.TagInterface{
 		tab("Users", "users", linksHelper.UserManager(nil)),
-		tab("Roles", "roles", linksHelper.RoleManager(nil)),
-		tab("Groups", "groups", linksHelper.GroupManager(nil)),
-	})
+	}
+	if store != nil && store.GetRoleTableName() != "" && store.GetUserRoleTableName() != "" {
+		tabs = append(tabs, tab("Roles", "roles", linksHelper.RoleManager(nil)))
+	}
+	if store != nil && store.GetGroupTableName() != "" && store.GetUserGroupTableName() != "" {
+		tabs = append(tabs, tab("Groups", "groups", linksHelper.GroupManager(nil)))
+	}
+
+	return hb.UL().Class("nav nav-tabs mb-3").Children(tabs)
 }
