@@ -100,7 +100,6 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		Class("container").
 		Class("py-4").
 		Child(breadcrumbs).
-		Child(hb.HR()).
 		Child(heading).
 		Child(shared.SectionNav(r)).
 		Child(roleTitle).
