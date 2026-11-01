@@ -124,7 +124,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		Class("py-4").
 		Child(breadcrumbs).
 		Child(heading).
-		Child(shared.SectionNav(r)).
+		Child(shared.SectionNav(r, u.UserStore())).
 		Child(userTitle).
 		Child(appHTML)
 

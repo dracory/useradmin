@@ -19,14 +19,37 @@ var (
 )
 
 func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
-	if u.UserStore() == nil {
-		return shared.ErrorAlert("User store is not configured")
-	}
-	if !u.groupsEnabled() {
-		return shared.ErrorAlert("Groups are not enabled in the user store")
+	linksHelper := shared.NewLinksFromRequest(r)
+
+	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
+		{Name: "Home", URL: shared.AdminHomeURL(r)},
+		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
+		{Name: "Groups", URL: ""},
+	})
+
+	pageShell := func(children ...hb.TagInterface) string {
+		content := hb.Div().Children(children)
+		page := hb.Div().
+			Class("container").
+			Class("py-4").
+			Child(breadcrumbs).
+			Child(shared.PageHeader("Users. Groups")).
+			Child(shared.SectionNav(r, u.UserStore())).
+			Child(content)
+		return u.Layout(w, r, "Groups | User Manager", page.ToHTML(), struct {
+			Styles     []string
+			StyleURLs  []string
+			Scripts    []string
+			ScriptURLs []string
+		}{})
 	}
 
-	linksHelper := shared.NewLinksFromRequest(r)
+	if u.UserStore() == nil {
+		return pageShell(hb.Raw(shared.ErrorAlert("User store is not configured")))
+	}
+	if !u.groupsEnabled() {
+		return pageShell(hb.Raw(shared.ErrorAlert("Groups are not enabled in the user store")))
+	}
 
 	urlGroupsLoad := shared.JSEscapeString(linksHelper.GroupManager(map[string]string{"action": actionLoadGroups}))
 	urlGroupDelete := shared.JSEscapeString(linksHelper.GroupManager(map[string]string{"action": actionDeleteGroup}))
@@ -46,31 +69,5 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	// and does not depend on the layout defining it.
 	js = shared.VueLoaderJS + "\n" + js
 
-	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
-		{Name: "Home", URL: shared.AdminHomeURL(r)},
-		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
-		{Name: "Groups", URL: ""},
-	})
-
-	content := hb.Div().
-		Child(hb.Raw(html)).
-		Child(hb.Script(js))
-
-	page := hb.Div().
-		Class("container").
-		Class("py-4").
-		Child(breadcrumbs).
-		Child(shared.PageHeader("Users. Groups")).
-		Child(shared.SectionNav(r)).
-		Child(content)
-
-	return u.Layout(w, r, "Groups | User Manager", page.ToHTML(), struct {
-		Styles     []string
-		StyleURLs  []string
-		Scripts    []string
-		ScriptURLs []string
-	}{
-		// Vue and SweetAlert2 are already loaded by the default layout
-		// (shared.Layout). No need to include them again here.
-	})
+	return pageShell(hb.Raw(html), hb.Script(js))
 }

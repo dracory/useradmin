@@ -19,14 +19,37 @@ var (
 )
 
 func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
-	if u.UserStore() == nil {
-		return shared.ErrorAlert("User store is not configured")
-	}
-	if !u.rolesEnabled() {
-		return shared.ErrorAlert("Roles are not enabled in the user store")
+	linksHelper := shared.NewLinksFromRequest(r)
+
+	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
+		{Name: "Home", URL: shared.AdminHomeURL(r)},
+		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
+		{Name: "Roles", URL: ""},
+	})
+
+	pageShell := func(children ...hb.TagInterface) string {
+		content := hb.Div().Children(children)
+		page := hb.Div().
+			Class("container").
+			Class("py-4").
+			Child(breadcrumbs).
+			Child(shared.PageHeader("Users. Roles")).
+			Child(shared.SectionNav(r, u.UserStore())).
+			Child(content)
+		return u.Layout(w, r, "Roles | User Manager", page.ToHTML(), struct {
+			Styles     []string
+			StyleURLs  []string
+			Scripts    []string
+			ScriptURLs []string
+		}{})
 	}
 
-	linksHelper := shared.NewLinksFromRequest(r)
+	if u.UserStore() == nil {
+		return pageShell(hb.Raw(shared.ErrorAlert("User store is not configured")))
+	}
+	if !u.rolesEnabled() {
+		return pageShell(hb.Raw(shared.ErrorAlert("Roles are not enabled in the user store")))
+	}
 
 	urlRolesLoad := shared.JSEscapeString(linksHelper.RoleManager(map[string]string{"action": actionLoadRoles}))
 	urlRoleDelete := shared.JSEscapeString(linksHelper.RoleManager(map[string]string{"action": actionDeleteRole}))
@@ -46,31 +69,5 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	// and does not depend on the layout defining it.
 	js = shared.VueLoaderJS + "\n" + js
 
-	breadcrumbs := shared.Breadcrumbs([]shared.Breadcrumb{
-		{Name: "Home", URL: shared.AdminHomeURL(r)},
-		{Name: "User Manager", URL: linksHelper.UserManager(nil)},
-		{Name: "Roles", URL: ""},
-	})
-
-	content := hb.Div().
-		Child(hb.Raw(html)).
-		Child(hb.Script(js))
-
-	page := hb.Div().
-		Class("container").
-		Class("py-4").
-		Child(breadcrumbs).
-		Child(shared.PageHeader("Users. Roles")).
-		Child(shared.SectionNav(r)).
-		Child(content)
-
-	return u.Layout(w, r, "Roles | User Manager", page.ToHTML(), struct {
-		Styles     []string
-		StyleURLs  []string
-		Scripts    []string
-		ScriptURLs []string
-	}{
-		// Vue and SweetAlert2 are already loaded by the default layout
-		// (shared.Layout). No need to include them again here.
-	})
+	return pageShell(hb.Raw(html), hb.Script(js))
 }

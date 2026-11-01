@@ -61,7 +61,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 
 	content := hb.Div().
 		Child(shared.PageHeader("Users. User Manager")).
-		Child(shared.SectionNav(r)).
+		Child(shared.SectionNav(r, u.UserStore())).
 		Child(hb.Raw(html)).
 		Child(hb.Script(js))
 
