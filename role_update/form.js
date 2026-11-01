@@ -9,9 +9,10 @@ loadVueIfNeeded((err) => {
     data() {
         return {
             loading: true,
-            saving: false,
-            action: '',
-            redirectTo: '',
+            savingSection: '',
+            statusCollapsed: false,
+            detailsCollapsed: false,
+            notesCollapsed: false,
             roleId: '',
             returnUrl: '',
             errorMessage: '',
@@ -26,11 +27,13 @@ loadVueIfNeeded((err) => {
     mounted() {
         this.roleId = ROLE_ID_PLACEHOLDER;
         this.returnUrl = RETURN_URL_PLACEHOLDER;
-        this.loadRole();
+        this.loadRole(true);
     },
     methods: {
-        async loadRole() {
-            this.loading = true;
+        async loadRole(showSpinner) {
+            if (showSpinner) {
+                this.loading = true;
+            }
             this.errorMessage = '';
             try {
                 const response = await fetch(urlGetRole, {
@@ -62,63 +65,91 @@ loadVueIfNeeded((err) => {
                     timeout: 3000,
                 });
             } finally {
-                this.loading = false;
+                if (showSpinner) {
+                    this.loading = false;
+                }
             }
         },
-        async save(actionType) {
-            this.action = actionType;
-            this.redirectTo = '';
-
-            if (!this.form.status) {
-                Notiflix.Notify.failure('Status is required', { position: 'right-top', timeout: 3000 });
-                return;
-            }
-            if (!this.form.name.trim()) {
-                Notiflix.Notify.failure('Name is required', { position: 'right-top', timeout: 3000 });
-                return;
-            }
-            if (!this.form.handle.trim()) {
-                Notiflix.Notify.failure('Handle is required', { position: 'right-top', timeout: 3000 });
-                return;
-            }
-
-            this.saving = true;
-            try {
-                const response = await fetch(urlUpdateRole, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        role_id: this.roleId,
-                        status: this.form.status,
-                        name: this.form.name.trim(),
-                        handle: this.form.handle.trim(),
-                        memo: this.form.memo.trim(),
-                        action: 'role-update-ajax'
+        sectionConfig() {
+            return {
+                status: {
+                    url: urlUpdateStatus,
+                    action: 'status-update-ajax',
+                    validate: () => this.form.status ? '' : 'Status is required',
+                    body: () => ({
+                        status: this.form.status.trim()
                     })
+                },
+                details: {
+                    url: urlUpdateDetails,
+                    action: 'details-update-ajax',
+                    validate: () => {
+                        if (!this.form.name.trim()) return 'Name is required';
+                        if (!this.form.handle.trim()) return 'Handle is required';
+                        return '';
+                    },
+                    body: () => ({
+                        name: this.form.name.trim(),
+                        handle: this.form.handle.trim()
+                    })
+                },
+                notes: {
+                    url: urlUpdateNotes,
+                    action: 'notes-update-ajax',
+                    validate: () => '',
+                    body: () => ({
+                        memo: this.form.memo.trim()
+                    })
+                }
+            };
+        },
+        async postSection(section) {
+            const conf = this.sectionConfig()[section];
+            const validationError = conf.validate();
+            if (validationError) {
+                Notiflix.Notify.failure(validationError, {
+                    position: 'right-top',
+                    timeout: 3000,
                 });
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    if (actionType === 'save') {
-                        this.redirectTo = this.returnUrl;
-                        Notiflix.Notify.success('Role saved successfully', { position: 'right-top', timeout: 3000 });
-                        setTimeout(() => {
-                            if (this.redirectTo) {
-                                window.location.href = this.redirectTo;
-                            }
-                        }, 3000);
-                    } else {
-                        Notiflix.Notify.success('Role saved successfully', { position: 'right-top', timeout: 3000 });
-                        await this.loadRole();
-                    }
-                } else {
-                    Notiflix.Notify.failure(result.message || 'Failed to save role', { position: 'right-top', timeout: 3000 });
+                return false;
+            }
+            const response = await fetch(conf.url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...conf.body(),
+                    role_id: this.roleId,
+                    action: conf.action
+                })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                return true;
+            }
+            Notiflix.Notify.failure(result.message || 'Failed to save', {
+                position: 'right-top',
+                timeout: 3000,
+            });
+            return false;
+        },
+        async saveSection(section) {
+            this.savingSection = section;
+            try {
+                if (await this.postSection(section)) {
+                    await this.loadRole(false);
+                    Notiflix.Notify.success('Saved successfully', {
+                        position: 'right-top',
+                        timeout: 3000,
+                    });
                 }
             } catch (err) {
-                console.error('Error saving role:', err);
-                Notiflix.Notify.failure('Failed to save role', { position: 'right-top', timeout: 3000 });
+                console.error('Error saving ' + section + ':', err);
+                Notiflix.Notify.failure('Failed to save', {
+                    position: 'right-top',
+                    timeout: 3000,
+                });
             } finally {
-                this.saving = false;
+                this.savingSection = '';
             }
         }
     }

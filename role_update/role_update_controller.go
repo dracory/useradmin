@@ -25,8 +25,10 @@ func UI(config shared.UiConfig) UiInterface {
 }
 
 const (
-	actionRoleFetch  = "role-fetch-ajax"
-	actionRoleUpdate = "role-update-ajax"
+	actionRoleFetch      = "role-fetch-ajax"
+	actionStatusUpdate   = "status-update-ajax"
+	actionDetailsUpdate  = "details-update-ajax"
+	actionNotesUpdate    = "notes-update-ajax"
 )
 
 // rolesEnabled reports whether the user store has role tables
@@ -49,8 +51,12 @@ func (u *ui) Handler(w http.ResponseWriter, r *http.Request) {
 	switch action {
 	case actionRoleFetch:
 		u.handleRoleFetchAjax(w, r)
-	case actionRoleUpdate:
-		u.handleRoleUpdateAjax(w, r)
+	case actionStatusUpdate:
+		u.handleStatusUpdateAjax(w, r)
+	case actionDetailsUpdate:
+		u.handleDetailsUpdateAjax(w, r)
+	case actionNotesUpdate:
+		u.handleNotesUpdateAjax(w, r)
 	default:
 		html := u.renderPage(w, r)
 		if html != "" {

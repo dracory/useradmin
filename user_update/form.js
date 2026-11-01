@@ -73,11 +73,13 @@ loadVueIfNeeded((err) => {
     mounted() {
         this.userId = USER_ID_PLACEHOLDER;
         this.returnUrl = RETURN_URL_PLACEHOLDER;
-        this.loadUser();
+        this.loadUser(true);
     },
     methods: {
-        async loadUser() {
-            this.loading = true;
+        async loadUser(showSpinner) {
+            if (showSpinner) {
+                this.loading = true;
+            }
             this.errorMessage = '';
             try {
                 const response = await fetch(urlGetUser, {
@@ -125,7 +127,9 @@ loadVueIfNeeded((err) => {
                     timeout: 3000,
                 });
             } finally {
-                this.loading = false;
+                if (showSpinner) {
+                    this.loading = false;
+                }
             }
         },
         async onCountryChange() {
@@ -295,6 +299,7 @@ loadVueIfNeeded((err) => {
             this.savingSection = section;
             try {
                 if (await this.postSection(section)) {
+                    await this.loadUser(false);
                     Notiflix.Notify.success('Saved successfully', {
                         position: 'right-top',
                         timeout: 3000,

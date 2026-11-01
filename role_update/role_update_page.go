@@ -56,7 +56,9 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 
 	returnURL := shared.JSEscapeString(roleManagerURL)
 	urlGetRole := shared.JSEscapeString(linksHelper.RoleUpdate(map[string]string{"action": actionRoleFetch, FieldRoleID: roleID}))
-	urlUpdateRole := shared.JSEscapeString(linksHelper.RoleUpdate(map[string]string{"action": actionRoleUpdate}))
+	urlUpdateStatus := shared.JSEscapeString(linksHelper.RoleUpdate(map[string]string{"action": actionStatusUpdate}))
+	urlUpdateDetails := shared.JSEscapeString(linksHelper.RoleUpdate(map[string]string{"action": actionDetailsUpdate}))
+	urlUpdateNotes := shared.JSEscapeString(linksHelper.RoleUpdate(map[string]string{"action": actionNotesUpdate}))
 	escapedRoleID := shared.JSEscapeString(roleID)
 
 	html := strings.ReplaceAll(formHTML, "ROLE_ID_PLACEHOLDER", "'"+escapedRoleID+"'")
@@ -64,7 +66,9 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	js := strings.ReplaceAll(formJS, "ROLE_ID_PLACEHOLDER", "'"+escapedRoleID+"'")
 	js = strings.ReplaceAll(js, "RETURN_URL_PLACEHOLDER", "'"+returnURL+"'")
 	js = strings.ReplaceAll(js, "urlGetRole", "'"+urlGetRole+"'")
-	js = strings.ReplaceAll(js, "urlUpdateRole", "'"+urlUpdateRole+"'")
+	js = strings.ReplaceAll(js, "urlUpdateStatus", "'"+urlUpdateStatus+"'")
+	js = strings.ReplaceAll(js, "urlUpdateDetails", "'"+urlUpdateDetails+"'")
+	js = strings.ReplaceAll(js, "urlUpdateNotes", "'"+urlUpdateNotes+"'")
 
 	// Prepend the loadVueIfNeeded guard so the script is self-contained
 	// and does not depend on the layout defining it.
@@ -89,13 +93,6 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 
 	roleTitle := hb.Heading2().Class("mb-3").Text("Role: ").Text(displayName)
 
-	card := hb.Div().Class("card").Child(
-		hb.Div().Class("card-header").Style("display:flex;justify-content:space-between;align-items:center;").
-			Child(hb.Heading4().HTML("Role Details").Style("margin-bottom:0;display:inline-block;")),
-	).Child(
-		hb.Div().Class("card-body").Child(appHTML),
-	)
-
 	content := hb.Div().
 		Class("container").
 		Class("py-4").
@@ -103,7 +100,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		Child(heading).
 		Child(shared.SectionNav(r)).
 		Child(roleTitle).
-		Child(card)
+		Child(appHTML)
 
 	return u.Layout(w, r, "Edit Role | Roles", content.ToHTML(), struct {
 		Styles     []string

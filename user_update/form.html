@@ -37,7 +37,7 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card mt-4">
             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" @click="detailsCollapsed = !detailsCollapsed">
                 <h4 style="margin-bottom:0;"><i class="bi me-2" :class="detailsCollapsed ? 'bi-plus-circle' : 'bi-dash-circle'"></i>User Details</h4>
                 <button type="button" class="btn btn-success btn-sm" @click.stop="saveSection('details')" :disabled="hasUnreadableFields || savingSection === 'details'" v-show="!detailsCollapsed">
