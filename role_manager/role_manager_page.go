@@ -61,6 +61,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		Class("py-4").
 		Child(breadcrumbs).
 		Child(shared.PageHeader("Users. Roles")).
+		Child(shared.SectionNav(r)).
 		Child(content)
 
 	return u.Layout(w, r, "Roles | User Manager", page.ToHTML(), struct {

@@ -59,18 +59,9 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		{Name: "User Manager", URL: ""},
 	})
 
-	header := hb.Div().Class("d-flex justify-content-between align-items-center mb-3").
-		Child(hb.H2().Text("Users. User Manager").Class("mb-0")).
-		Child(hb.Div().Class("d-flex gap-2 align-items-center").
-			Child(hb.Hyperlink().Class("btn btn-outline-primary btn-sm").
-				Child(hb.I().Class("bi bi-shield-lock me-1")).HTML("Roles").
-				Href(linksHelper.RoleManager(nil))).
-			Child(hb.Hyperlink().Class("btn btn-outline-primary btn-sm").
-				Child(hb.I().Class("bi bi-people me-1")).HTML("Groups").
-				Href(linksHelper.GroupManager(nil))))
-
 	content := hb.Div().
-		Child(header).
+		Child(shared.PageHeader("Users. User Manager")).
+		Child(shared.SectionNav(r)).
 		Child(hb.Raw(html)).
 		Child(hb.Script(js))
 

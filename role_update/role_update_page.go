@@ -102,6 +102,7 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		Child(breadcrumbs).
 		Child(hb.HR()).
 		Child(heading).
+			Child(shared.SectionNav(r)).
 		Child(roleTitle).
 		Child(card)
 
