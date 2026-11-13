@@ -31,6 +31,7 @@ tasks:
       - echo "= 2. To create coverage report type 'task cover'               ="
       - echo "= 3. To start example with hot reload type 'task dev'          ="
       - echo "= 4. To install air type 'task air:install'                    ="
+      - echo "= 5. To run e2e tests type 'task e2e'                          ="
       - echo "=                                                              ="
       - echo "================================================================"
     silent: true
@@ -72,6 +73,12 @@ tasks:
       - go test ./... -coverprofile=tmp/coverage.out -covermode=count
       - go tool cover -html=tmp/coverage.out
       - echo "Done!"
+    silent: true
+
+  e2e:
+    desc: Run end-to-end browser tests (chromedp + headless Chrome)
+    cmds:
+      - go test -v ./e2e/
     silent: true
 
   # ======================================================================== #
