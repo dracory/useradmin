@@ -25,10 +25,10 @@ func UI(config shared.UiConfig) UiInterface {
 }
 
 const (
-	actionRoleFetch      = "role-fetch-ajax"
-	actionStatusUpdate   = "status-update-ajax"
-	actionDetailsUpdate  = "details-update-ajax"
-	actionNotesUpdate    = "notes-update-ajax"
+	actionRoleFetch     = "role-fetch-ajax"
+	actionStatusUpdate  = "status-update-ajax"
+	actionDetailsUpdate = "details-update-ajax"
+	actionNotesUpdate   = "notes-update-ajax"
 )
 
 // rolesEnabled reports whether the user store has role tables
