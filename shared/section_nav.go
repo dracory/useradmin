@@ -8,10 +8,11 @@ import (
 	"github.com/dracory/userstore"
 )
 
-// SectionNav renders the useradmin section navigation as tabs, matching the
-// nav-tabs pattern used across the admin packages. The active tab is derived
-// from the ?controller= query parameter. The Roles and Groups tabs are only
-// shown when the user store has the corresponding tables enabled.
+// SectionNav renders the useradmin section navigation as pills, matching the
+// nav-pills card pattern used across the admin packages (shopadmin, taskadmin).
+// The active tab is derived from the ?controller= query parameter. The Roles
+// and Groups tabs are only shown when the user store has the corresponding
+// tables enabled.
 func SectionNav(r *http.Request, store userstore.StoreInterface) hb.TagInterface {
 	linksHelper := NewLinksFromRequest(r)
 
@@ -46,5 +47,20 @@ func SectionNav(r *http.Request, store userstore.StoreInterface) hb.TagInterface
 		tabs = append(tabs, tab("Groups", "groups", linksHelper.GroupManager(nil)))
 	}
 
-	return hb.UL().Class("nav nav-tabs mb-3").Children(tabs)
+	ulNav := hb.UL().
+		Class("nav nav-pills p-1 justify-content-center flex-grow-1").
+		Children(tabs)
+
+	label := hb.Span().
+		Class("fw-bolder text-uppercase ms-3 me-3").
+		Text("Users").
+		Child(hb.I().Class("bi bi-chevron-right ms-2"))
+
+	return hb.Div().
+		Class("card card-default mt-3 mb-4 bg-primary-subtle").
+		Child(hb.Div().
+			Class("card-body d-flex align-items-center").
+			Style("padding: 2px;").
+			Child(label).
+			Child(ulNav))
 }

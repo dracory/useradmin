@@ -32,9 +32,9 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 		page := hb.Div().
 			Class("container").
 			Class("py-4").
+			Child(shared.SectionNav(r, u.UserStore())).
 			Child(breadcrumbs).
 			Child(shared.PageHeader("Users. Role Manager")).
-			Child(shared.SectionNav(r, u.UserStore())).
 			Child(content)
 		return u.Layout(w, r, "Roles | User Manager", page.ToHTML(), struct {
 			Styles     []string

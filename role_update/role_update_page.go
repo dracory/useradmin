@@ -96,9 +96,9 @@ func (u *ui) renderPage(w http.ResponseWriter, r *http.Request) string {
 	content := hb.Div().
 		Class("container").
 		Class("py-4").
+		Child(shared.SectionNav(r, u.UserStore())).
 		Child(breadcrumbs).
 		Child(heading).
-		Child(shared.SectionNav(r, u.UserStore())).
 		Child(roleTitle).
 		Child(appHTML)
 
